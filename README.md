@@ -1,12 +1,17 @@
 # Vim Pck
 
+[![Build Status](https://travis-ci.org/nicodebo/vim-pck.svg?branch=master)](https://travis-ci.org/nicodebo/vim-pck)
+
 A command line tool to manage my vim plugin using the built-in package
 feature of vim8. (see :help packages)
 
 ## Dependencies
 
 * git
-* sqlite
+* python 3.6:
+    - click
+    - sh
+    - tqdm
 
 ## Installation
 
