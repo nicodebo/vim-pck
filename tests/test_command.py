@@ -1,7 +1,6 @@
 import pytest
 import configparser
 import os
-from urllib.parse import urlparse
 from vim_pck import command
 from vim_pck import utils
 
@@ -71,18 +70,19 @@ def test_install_cmd_1(write_conf_1, temp_dir):
     somewhere where the install_cmd have cloned the repository into.
     """
 
-    command.install_cmd(config=write_conf_1)
-
-    installed_plug = utils.instplug(str(temp_dir.getbasetemp()), 4)
-
     config = configparser.ConfigParser()
     config.read(write_conf_1)
     plug_urls = [sect for sect in config.sections() if sect != 'DEFAULT']
-    for plug_url in plug_urls:
-        plug_name = os.path.basename(urlparse(plug_url).path)
-        plug_locrepo = os.path.join(config[plug_url]['package'],
-                                    config[plug_url]['type'], plug_name)
-        assert any(plug_locrepo in s for s in installed_plug)
+    plug_names = [os.path.basename(i) for i in plug_urls]
+    pack_path = config['DEFAULT']['pack_path']
+
+    command.install_cmd(config=write_conf_1)
+    installed_plug = utils.instplug(pack_path, 3)
+
+    if not set(installed_plug).difference(plug_names):
+        assert 1
+    else:
+        assert 0
 
 
 def test_install_cmd_2(write_conf_2, temp_dir):
@@ -97,16 +97,14 @@ def test_install_cmd_2(write_conf_2, temp_dir):
     config = configparser.ConfigParser()
     config.read(write_conf_2)
     plug_urls = [sect for sect in config.sections() if sect != 'DEFAULT']
+    plug_names = [os.path.basename(i) for i in plug_urls]
+    pack_path = config['DEFAULT']['pack_path']
 
     command.install_cmd(config=write_conf_2)
+    installed_plug = utils.instplug(pack_path, 3)
 
-    installed_plug = utils.instplug(str(temp_dir.getbasetemp()), 4)
-
-    for plug_url in plug_urls:
-        plug_name = os.path.basename(urlparse(plug_url).path)
-        if 'neomake' in plug_name:
-            assert not any(plug_name in s for s in installed_plug)
-        else:
-            plug_locrepo = os.path.join(config[plug_url]['package'],
-                                        config[plug_url]['type'], plug_name)
-            assert any(plug_locrepo in s for s in installed_plug)
+    diff = set(installed_plug).symmetric_difference(plug_names)
+    if ('neomake' in diff) and (len(diff) == 1):
+        assert 1
+    else:
+        assert 0

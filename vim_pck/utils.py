@@ -1,3 +1,4 @@
+from itertools import compress
 import os
 
 
@@ -23,6 +24,17 @@ def instplug(pack_path, level=3):
         installed_plug (list) : list of installed plugins
     """
     installed_plug = []
+    dirlen = []  # store length of the path (how deep they are)
     for dirpath, dirnames, filenames in walklevel(pack_path, level):
         installed_plug.append(dirpath)
+    # find deepest paths
+    # http://stackoverflow.com/questions/3167154/how-to-split-a-dos-path-into-its-components-in-python
+    for plug in installed_plug:
+        plug = os.path.normpath(plug)
+        dirlen.append(len(plug.split(os.sep)))
+    # keep only deepest path
+    fil = [(i - j) == 0 for i, j in zip([max(dirlen)]*len(dirlen), dirlen)]
+    installed_plug = list(compress(installed_plug, fil))
+    # keep only basename
+    installed_plug = [os.path.basename(i) for i in installed_plug]
     return installed_plug
