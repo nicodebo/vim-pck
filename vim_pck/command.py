@@ -2,9 +2,9 @@
 stored
 """
 
-import click
 import configparser
 import os
+import sys
 from sh import git
 from tqdm import tqdm
 from urllib.parse import urlparse
@@ -25,14 +25,18 @@ def install_cmd(**kwargs):
     """
 
     config = configparser.ConfigParser()
-    if kwargs['config']:
-        # click.echo('Configuration file path: %s' % kwargs['config'])
-        config.read(kwargs['config'])
-    else:
-        click.echo('loading the real configuration file')
-        config.read([os.path.join(os.environ['XDG_CONFIG_HOME'],
-                    'vimpack/config'),
-                     os.expanduser('~/.config/vimpck/config')])
+
+    try:
+        conf_path = os.environ['VIMPCKRC']
+    except KeyError:
+        conf_path = os.getenv(os.path.join(os.environ['XDG_CONFIG_HOME'],
+                                           'vimpck/config'),
+                              os.path.expanduser('~/.config/vimpck/config'))
+    finally:
+        if os.path.exists(conf_path):
+            config.read(conf_path)
+        else:
+            sys.exit("No configuration file found!")
 
     # get all plugin section
     pack_path = config['DEFAULT']['pack_path']
@@ -51,9 +55,6 @@ def install_cmd(**kwargs):
             config[plug_url]['plug_locrepo'] = plug_locrepo
 
     # get already installed plugins
-    # installed_plug = []
-    # for dirpath, dirnames, filenames in utils.walklevel(pack_path, level=3):
-    #     installed_plug.append(dirpath)
     installed_plug = utils.instplug(pack_path)
 
     # filter config entries to only get non-installed plugins

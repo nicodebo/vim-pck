@@ -32,6 +32,7 @@ def write_conf(temp_dir):
         config.write(configfile)
     return(str(confpath))
 
+#TODO: This hereabove fixture is useless since I don't use configuration file
 
 def test_inst_plug(write_conf, temp_dir):
     """Test vim_pck.utils.instplug()

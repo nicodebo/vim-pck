@@ -11,7 +11,13 @@ def temp_dir(tmpdir_factory):
 
 
 @pytest.fixture()
-def write_conf_1(temp_dir):
+def write_conf_1(temp_dir, monkeypatch):
+    """ Initial setup for the test_install_cmd_1 test function
+
+    1. Write a vimpck configuration file
+    2. Set the VIMPCKRC env variable to the path of the created configuration
+        file
+    """
     config = configparser.ConfigParser()
     dirtest = 'install_cmd'
     basepath = temp_dir.mktemp(dirtest)
@@ -31,11 +37,18 @@ def write_conf_1(temp_dir):
             'type': 'start'}
     with open(confpath, 'w') as configfile:
         config.write(configfile)
-    return(str(confpath))
+    monkeypatch.setitem(os.environ, 'VIMPCKRC', str(confpath))
+    print(os.environ["VIMPCKRC"])
 
 
 @pytest.fixture()
-def write_conf_2(temp_dir):
+def write_conf_2(temp_dir, monkeypatch):
+    """ Initial setup for the test_install_cmd_2 test function
+
+    1. Write a vimpck configuration file
+    2. Set the VIMPCKRC env variable to the path of the created configuration
+        file
+    """
     config = configparser.ConfigParser()
     dirtest = 'install_cmd'
     basepath = temp_dir.mktemp(dirtest)
@@ -57,7 +70,8 @@ def write_conf_2(temp_dir):
         {'package': 'linter'}
     with open(confpath, 'w') as configfile:
         config.write(configfile)
-    return(str(confpath))
+    monkeypatch.setitem(os.environ, 'VIMPCKRC', str(confpath))
+    print(os.environ["VIMPCKRC"])
 
 
 def test_install_cmd_1(write_conf_1, temp_dir):
@@ -71,12 +85,12 @@ def test_install_cmd_1(write_conf_1, temp_dir):
     """
 
     config = configparser.ConfigParser()
-    config.read(write_conf_1)
+    config.read(os.environ["VIMPCKRC"])
     plug_urls = [sect for sect in config.sections() if sect != 'DEFAULT']
     plug_names = [os.path.basename(i) for i in plug_urls]
     pack_path = config['DEFAULT']['pack_path']
 
-    command.install_cmd(config=write_conf_1)
+    command.install_cmd()
     installed_plug = utils.instplug(pack_path, 3)
 
     if not set(installed_plug).difference(plug_names):
@@ -95,12 +109,12 @@ def test_install_cmd_2(write_conf_2, temp_dir):
     """
 
     config = configparser.ConfigParser()
-    config.read(write_conf_2)
+    config.read(os.environ["VIMPCKRC"])
     plug_urls = [sect for sect in config.sections() if sect != 'DEFAULT']
     plug_names = [os.path.basename(i) for i in plug_urls]
     pack_path = config['DEFAULT']['pack_path']
 
-    command.install_cmd(config=write_conf_2)
+    command.install_cmd()
     installed_plug = utils.instplug(pack_path, 3)
 
     diff = set(installed_plug).symmetric_difference(plug_names)
