@@ -122,3 +122,33 @@ def test_install_cmd_2(write_conf_2, temp_dir):
         assert 1
     else:
         assert 0
+
+
+def test_install_cmd_3(write_conf_1, temp_dir):
+    """Test vim_pck.command.install_cmd()
+
+    Install some plugin and reinstall them. Plugin already installed should not
+    be reinstalled.
+    """
+
+    config = configparser.ConfigParser()
+    config.read(os.environ["VIMPCKRC"])
+    plug_urls = [sect for sect in config.sections() if sect != 'DEFAULT']
+    plug_names = [os.path.basename(i) for i in plug_urls]
+    pack_path = config['DEFAULT']['pack_path']
+
+    command.install_cmd()
+    installed_plug = utils.instplug(pack_path, 3)
+
+    if not set(installed_plug).difference(plug_names):
+        assert 1
+    else:
+        assert 0
+
+    command.install_cmd()
+    installed_plug = utils.instplug(pack_path, 3)
+
+    if not set(installed_plug).difference(plug_names):
+        assert 1
+    else:
+        assert 0

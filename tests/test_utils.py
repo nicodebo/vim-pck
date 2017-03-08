@@ -9,32 +9,7 @@ def temp_dir(tmpdir_factory):
     return(tmpdir_factory)
 
 
-@pytest.fixture()
-def write_conf(temp_dir):
-    config = configparser.ConfigParser()
-    dirtest = 'install_cmd'
-    basepath = temp_dir.mktemp(dirtest)
-    confpath = basepath.join('config.ini')
-    config['DEFAULT'] = {'pack_path': basepath}
-    config['https://github.com/tpope/vim-commentary'] = \
-        {'package': 'common',
-            'type': 'start'}
-    config['https://github.com/tpope/vim-dispatch'] = \
-        {'package': 'common',
-            'type': 'opt'}
-    config['https://github.com/mustache/vim-mustache-handlebars'] = \
-        {'package': 'filetype',
-            'type': 'start'}
-    config['https://github.com/altercation/vim-colors-solarized'] = \
-        {'package': 'colors',
-            'type': 'start'}
-    with open(confpath, 'w') as configfile:
-        config.write(configfile)
-    return(str(confpath))
-
-#TODO: This hereabove fixture is useless since I don't use configuration file
-
-def test_inst_plug(write_conf, temp_dir):
+def test_inst_plug(temp_dir):
     """Test vim_pck.utils.instplug()
 
     Install some plugin and retrieve the list of installed plugin. Compare the

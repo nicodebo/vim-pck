@@ -5,7 +5,8 @@ stored
 import configparser
 import os
 import sys
-from sh import git
+# from sh import git
+import sh
 from tqdm import tqdm
 from urllib.parse import urlparse
 
@@ -63,15 +64,18 @@ def install_cmd(**kwargs):
     installed_plug = utils.instplug(pack_path)
 
     # filter config entries to only get non-installed plugins
-    plug_urls = [sect for sect in plug_urls if not any(config[sect]['plug_locrepo'] in s for s in installed_plug)]
+    plug_urls_fil = []
+    for plug_url in plug_urls:
+        if not any(os.path.basename(urlparse(config[plug_url]['plug_locrepo']).path) in s for s in installed_plug):
+            plug_urls_fil.append(plug_url)
 
     # install plugins
-    for plug_url in tqdm(plug_urls):
+    for plug_url in tqdm(plug_urls_fil):
         plug_name = os.path.basename(urlparse(plug_url).path)
         plug_locrepo = config[plug_url]['plug_locrepo']
         try:
-            output = git.clone(plug_url, plug_locrepo)
-        except ErrorReturnCode:
+            output = sh.git.clone(plug_url, plug_locrepo)
+        except sh.ErrorReturnCode_128:
             message = "exit code: %s --> %s" % (str(output), plug_name)
         else:
             message = "Done cloning: %s --> %s" % \
@@ -79,12 +83,9 @@ def install_cmd(**kwargs):
         finally:
             tqdm.write(message)
 
-# TODO: Gérer le cas ou le réseau planterait pour la command git clone. Voir
-# quel sont les types d'exception géré par sh ?
-# TODO: logging
 # TODO: pour déclencher l'erreur sur git clone mettre /start à la place de
 # start dans le fichier de configuration.
 # Faire un test ou je rajoute une entrée dans le fichier de configuration et je
 # vois si ce qui se passe avec git clone. Ça va bugger car je ne tiens pas
 # compte de cela.
-# TODO: Que se passe t'il s'il manque la valeur d'une clé 'key ='
+# TODO: exception for git clone doesn't work
