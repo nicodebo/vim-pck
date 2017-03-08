@@ -39,7 +39,12 @@ def install_cmd(**kwargs):
             sys.exit("No configuration file found!")
 
     # get all plugin section
-    pack_path = config['DEFAULT']['pack_path']
+    pack_path = os.path.expanduser(config['DEFAULT']['pack_path'])
+    try:
+        os.makedirs(pack_path)
+    except OSError:
+        pass
+
     plug_urls = [sect for sect in config.sections() if sect != 'DEFAULT']
 
     # get valid entries (plug_locrepo != '')
