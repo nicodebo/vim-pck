@@ -29,7 +29,9 @@ interpreter to use (not tested):
 
 To update:
 
-`$ pipsi upgrade vimpck`
+`$ pipsi uninstall vimpck`
+
+`$ pipsi install git+https://github.com/nicodebo/vim-pck.git@master#egg=vimpck`
 
 To uninstall:
 
@@ -99,6 +101,7 @@ To use it:
 - [ ] vimpck freeze, generate a configuration file that mirrors the current
   packages installation (directory, commit)
 - [ ] vimpck clean, remove commented out/location changed plugins
+- [ ] find a better way to update vimpck. (pypi repo ?)
 
 ## Note
 

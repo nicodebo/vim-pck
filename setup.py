@@ -7,7 +7,7 @@ dependencies = ['click', 'sh', 'tqdm']
 
 setup(
     name='vimpck',
-    version='0.1.2',
+    version='0.1.0',
     url='https://github.com/nicodebo/vim-pck',
     license='BSD',
     author='Nicolas D.',
