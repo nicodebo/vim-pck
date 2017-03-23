@@ -5,8 +5,7 @@ stored
 import configparser
 import os
 import sys
-# from sh import git
-import sh
+import subprocess
 from tqdm import tqdm
 from urllib.parse import urlparse
 
@@ -27,6 +26,7 @@ def install_cmd(**kwargs):
 
     config = configparser.ConfigParser()
 
+    # Read vimpck configuration file
     try:
         conf_path = os.environ['VIMPCKRC']
     except KeyError:
@@ -66,26 +66,37 @@ def install_cmd(**kwargs):
     # filter config entries to only get non-installed plugins
     plug_urls_fil = []
     for plug_url in plug_urls:
-        if not any(os.path.basename(urlparse(config[plug_url]['plug_locrepo']).path) in s for s in installed_plug):
+        if not any(os.path.basename(
+            urlparse(config[plug_url]['plug_locrepo']).path)
+                in s for s in installed_plug):
             plug_urls_fil.append(plug_url)
 
     # install plugins
+    gitcloneerror = []
     for plug_url in tqdm(plug_urls_fil):
+        temperror = []
         plug_name = os.path.basename(urlparse(plug_url).path)
         plug_locrepo = config[plug_url]['plug_locrepo']
+
         try:
-            output = sh.git.clone(plug_url, plug_locrepo)
-        except sh.ErrorReturnCode_128:
-            message = "exit code: %s --> %s" % (str(output), plug_name)
+            subprocess.run(["git", "clone", plug_url, plug_locrepo],
+                           stderr=subprocess.PIPE, check=True)
+        except subprocess.CalledProcessError as e:
+            message = "Failed cloning : exit code: %s --> %s" % \
+                      (e.returncode, plug_name)
+            temperror.append(plug_name)
+            temperror.append(plug_url)
+            temperror.append(e.returncode)
+            temperror.append(e.cmd)
+            temperror.append(e.stderr)
+            gitcloneerror.append(temperror)
         else:
             message = "Done cloning: %s --> %s" % \
                       (plug_name, os.path.split(plug_locrepo)[0])
         finally:
             tqdm.write(message)
 
-# TODO: pour déclencher l'erreur sur git clone mettre /start à la place de
-# start dans le fichier de configuration.
-# Faire un test ou je rajoute une entrée dans le fichier de configuration et je
-# vois si ce qui se passe avec git clone. Ça va bugger car je ne tiens pas
-# compte de cela.
-# TODO: exception for git clone doesn't work
+    if gitcloneerror:
+        for err in gitcloneerror:
+            message = "\n--> plug name: {0} \nplug url: {1} \ncmd: {2} \nerror code: {3} \nerror message: {4} \n".format(err[0], err[1], " ".join(err[3]), err[2], err[4].decode('UTF-8'))
+            print(message)
