@@ -2,9 +2,7 @@
 stored
 """
 
-import configparser
 import os
-import sys
 import subprocess
 from tqdm import tqdm
 from urllib.parse import urlparse
@@ -24,20 +22,7 @@ def install_cmd(**kwargs):
         specify an alternate configuration file. Used for testing purpose.
     """
 
-    config = configparser.ConfigParser()
-
-    # Read vimpck configuration file
-    try:
-        conf_path = os.environ['VIMPCKRC']
-    except KeyError:
-        conf_path = os.getenv(os.path.join(os.environ['XDG_CONFIG_HOME'],
-                                           'vimpck/config'),
-                              os.path.expanduser('~/.config/vimpck/config'))
-    finally:
-        if os.path.exists(conf_path):
-            config.read(conf_path)
-        else:
-            sys.exit("No configuration file found!")
+    config = utils.readconf()
 
     # get all plugin section
     pack_path = os.path.expanduser(config['DEFAULT']['pack_path'])

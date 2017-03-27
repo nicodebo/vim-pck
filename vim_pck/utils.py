@@ -1,5 +1,7 @@
+import configparser
 from itertools import compress
 import os
+import sys
 
 
 # http://stackoverflow.com/questions/229186/os-walk-without-digging-into-directories-below
@@ -38,3 +40,23 @@ def instplug(pack_path, level=3):
     # keep only basename
     installed_plug = [os.path.basename(i) for i in installed_plug]
     return installed_plug
+
+
+def readconf():
+
+    config = configparser.ConfigParser()
+
+    # Read vimpck configuration file
+    try:
+        conf_path = os.environ['VIMPCKRC']
+    except KeyError:
+        conf_path = os.getenv(os.path.join(os.environ['XDG_CONFIG_HOME'],
+                                           'vimpck/config'),
+                              os.path.expanduser('~/.config/vimpck/config'))
+    finally:
+        if os.path.exists(conf_path):
+            config.read(conf_path)
+        else:
+            sys.exit("No configuration file found!")
+
+    return config
