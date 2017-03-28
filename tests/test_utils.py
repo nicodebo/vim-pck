@@ -16,7 +16,8 @@ def test_inst_plug(temp_dir):
     effectively installed plugin with the retrieved plugin from the instplug
     function. They should be equal.
     """
-    bsdir = str(temp_dir.getbasetemp())
+    dirtest = 'install_cmd'
+    bsdir = str(temp_dir.mktemp(dirtest))
     plugins = ['vim-colors-solarized', 'vim-mustache-handlebars',
                'vim-dispatch', 'vim-commentary']
 
@@ -25,8 +26,9 @@ def test_inst_plug(temp_dir):
     os.makedirs(os.path.join(bsdir, 'common', 'opt', plugins[2]))
     os.makedirs(os.path.join(bsdir, 'common', 'start', plugins[3]))
 
-    installed_plug = utils.instplug(bsdir, 4)
-    if not set(installed_plug).difference(plugins):
+    installed_plug = utils.instplug(bsdir)
+
+    if not set(plugins).symmetric_difference(set(installed_plug.keys())):
         assert 1
     else:
         assert 0

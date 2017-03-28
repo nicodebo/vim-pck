@@ -127,7 +127,7 @@ def test_install_cmd_1(write_conf_1, temp_dir):
     command.install_cmd()
     installed_plug = utils.instplug(pack_path, 3)
 
-    if not set(installed_plug).difference(plug_names):
+    if not set(plug_names).symmetric_difference(set(installed_plug.keys())):
         assert 1
     else:
         assert 0
@@ -151,7 +151,7 @@ def test_install_cmd_2(write_conf_2, temp_dir):
     command.install_cmd()
     installed_plug = utils.instplug(pack_path, 3)
 
-    diff = set(installed_plug).symmetric_difference(plug_names)
+    diff = set(installed_plug.keys()).symmetric_difference(plug_names)
     if ('neomake' in diff) and (len(diff) == 1):
         assert 1
     else:
@@ -174,7 +174,7 @@ def test_install_cmd_3(write_conf_1, temp_dir):
     command.install_cmd()
     installed_plug = utils.instplug(pack_path, 3)
 
-    if not set(installed_plug).difference(plug_names):
+    if not set(plug_names).symmetric_difference(set(installed_plug.keys())):
         assert 1
     else:
         assert 0
@@ -182,7 +182,7 @@ def test_install_cmd_3(write_conf_1, temp_dir):
     command.install_cmd()
     installed_plug = utils.instplug(pack_path, 3)
 
-    if not set(installed_plug).difference(plug_names):
+    if not set(plug_names).symmetric_difference(set(installed_plug.keys())):
         assert 1
     else:
         assert 0
@@ -206,7 +206,8 @@ def test_install_cmd_4(write_conf_4, temp_dir):
     command.install_cmd()
     installed_plug = utils.instplug(pack_path, 3)
     goodplugin = ["vim-commentary", "vim-dispatch", "vim-colors-solarized"]
-    if not set(installed_plug).difference(goodplugin):
+
+    if not set(goodplugin).symmetric_difference(set(installed_plug.keys())):
         assert 1
     else:
         assert 0
