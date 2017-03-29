@@ -87,9 +87,9 @@ To use it:
 - [x] vimpck install, install plugins from configuration file
 - [ ] vimpck install -r <requirements>, restore a package directory. The
       requirements file comes from the vimpack freeze command herebelow.
-- [ ] vimpck list, list installed plugins
-- [ ] vimpck list --start, list autostarting plugins
-- [ ] vimpck list --opt, list optional plugins
+- [x] vimpck list, list installed plugins
+- [x] vimpck list --start, list autostarting plugins
+- [x] vimpck list --opt, list optional plugins
 - [ ] vimpck upgrade, upgrade non freezed plugins
 - [ ] vimpck upgrade <plugin>, upgrade a specific plugin
 - [ ] vimpck upgrade -f, force upgrade all plugin no matter if they are
@@ -102,6 +102,7 @@ To use it:
   packages installation (directory, commit)
 - [ ] vimpck clean, remove commented out/location changed plugins
 - [ ] find a better way to update vimpck. (pypi repo ?)
+- [ ] Add post install hooks, (ex: generate documentation)
 
 ## Note
 
