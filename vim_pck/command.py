@@ -85,3 +85,31 @@ def install_cmd(**kwargs):
         for err in gitcloneerror:
             message = "\n--> plug name: {0} \nplug url: {1} \ncmd: {2} \nerror code: {3} \nerror message: {4} \n".format(err[0], err[1], " ".join(err[3]), err[2], err[4].decode('UTF-8'))
             print(message)
+
+def ls_cmd(**kwargs):
+    """list function. This function is launched when the ``vimpck ls``
+    command is invoked.
+
+
+    Arg:
+        **kwarg (str) : an argument is present, kwargs['start']/kwarg['opt'] to
+        filter autostart/optional plugins
+    """
+
+    config = utils.readconf()
+    pack_path = os.path.expanduser(config['DEFAULT']['pack_path'])
+    installed_plug = utils.instplug(pack_path)
+
+    plug = []
+    if kwargs['start']:
+        for key in installed_plug.keys():
+            if installed_plug[key] == 'start':
+                plug.append(key)
+    elif kwargs['opt']:
+        for key in installed_plug.keys():
+            if installed_plug[key] == 'opt':
+                plug.append(key)
+    else:
+        for key in installed_plug.keys():
+            plug.append(key)
+    return plug

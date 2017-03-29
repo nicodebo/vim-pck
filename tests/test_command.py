@@ -211,3 +211,49 @@ def test_install_cmd_4(write_conf_4, temp_dir):
         assert 1
     else:
         assert 0
+
+def test_ls_cmd(write_conf_1, temp_dir):
+    """Test vim_pck.utils.instplug()
+
+    Install some plugin and retrieve the list of installed plugin. Compare the
+    effectively installed plugin with the retrieved plugin from the instplug
+    function. They should be equal.
+    """
+
+    config = configparser.ConfigParser()
+    config.read(os.environ["VIMPCKRC"])
+    plug_urls = [sect for sect in config.sections() if sect != 'DEFAULT']
+    pack_path = config['DEFAULT']['pack_path']
+
+    try:
+        for i in plug_urls:
+            os.makedirs(os.path.join(pack_path,
+                                     config[i]['package'],
+                                     config[i]['type'],
+                                     os.path.basename(i)))
+    except OSError:
+        pass
+
+    plug_names = [os.path.basename(i) for i in plug_urls]
+    allplug = command.ls_cmd(start=False, opt=False)
+
+    if not set(allplug).symmetric_difference(set(plug_names)):
+        assert 1
+    else:
+        assert 0
+
+    plug_names_start = [os.path.basename(i) for i in plug_urls if config[i]['type']=='start']
+    startplug = command.ls_cmd(start=True, opt=False)
+
+    if not set(startplug).symmetric_difference(set(plug_names_start)):
+        assert 1
+    else:
+        assert 0
+
+    plug_names_opt = [os.path.basename(i) for i in plug_urls if config[i]['type']=='opt']
+    optplug = command.ls_cmd(start=False, opt=True)
+
+    if not set(optplug).symmetric_difference(set(plug_names_opt)):
+        assert 1
+    else:
+        assert 0
