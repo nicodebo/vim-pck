@@ -22,7 +22,7 @@ def install(**kwargs):
 @click.option('--opt', is_flag=True, help='list optional packages')
 def ls(**kwargs):
     """List installed package(s)"""
-    print(*command.list_cmd(**kwargs), sep='\n')
+    print(*command.ls_cmd(**kwargs), sep='\n')
 
 
 main.add_command(install)
