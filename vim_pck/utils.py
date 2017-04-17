@@ -2,6 +2,7 @@ import configparser
 from itertools import compress
 import os
 import sys
+from urllib.parse import urlparse
 
 
 # http://stackoverflow.com/questions/229186/os-walk-without-digging-into-directories-below
@@ -37,7 +38,7 @@ def instplug(pack_path, level=3):
         plug = os.path.normpath(plug)
         dirlen.append(len(plug.split(os.sep)))
     # keep only deepest path
-    fil = [(i - j) == 0 for i, j in zip([max(dirlen)]*len(dirlen), dirlen)]
+    fil = [(i - j) == 0 for i, j in zip([max(dirlen)] * len(dirlen), dirlen)]
     installed_plug_dir = list(compress(installed_plug_dir, fil))
 
     for plug in installed_plug_dir:
@@ -49,21 +50,59 @@ def instplug(pack_path, level=3):
     return installed_plug
 
 
-def readconf():
+# class PluginsList:
+#     """This class define the list of plugin from which we can filter by
+#     opt/autostart"""
 
-    config = configparser.ConfigParser()
+#     def __init__(self):
+#         self.list = {}
 
-    # Read vimpck configuration file
-    try:
-        conf_path = os.environ['VIMPCKRC']
-    except KeyError:
-        conf_path = os.getenv(os.path.join(os.environ['XDG_CONFIG_HOME'],
-                                           'vimpck/config'),
-                              os.path.expanduser('~/.config/vimpck/config'))
-    finally:
-        if os.path.exists(conf_path):
-            config.read(conf_path)
-        else:
-            sys.exit("No configuration file found!")
+class ConfigFile:
+    """This class define the configuration file and method that allows to
+    manipulate it"""
 
-    return config
+    def __init__(self):
+        self.config = configparser.ConfigParser()
+        self.conf_path = ""
+        self.pack_path = ""
+        self.plugurls = []
+        self.readconf()
+        self.getpackpath()
+
+    def readconf(self):
+        # Read vimpck configuration file
+        try:
+            self.conf_path = os.environ['VIMPCKRC']
+        except KeyError:
+            self.conf_path = os.getenv(os.path.join(os.environ['XDG_CONFIG_HOME'],
+                                                    'vimpck/config'),
+                                       os.path.expanduser('~/.config/vimpck/config'))
+        finally:
+            if os.path.exists(self.conf_path):
+                self.config.read(self.conf_path)
+            else:
+                sys.exit("No configuration file found!")
+
+    def getpackpath(self):
+        self.pack_path = os.path.expanduser(self.config['DEFAULT']['pack_path'])
+
+    def getplugurls(self):
+        self.plugurls = [sect for sect in self.config.sections() if sect != 'DEFAULT']
+
+    def tagplugentries(self):
+        """add a key/value pair, plug_locrepo, to self.config
+        plug_locrepo = '', for invalid entries
+        plug_locrepo = plugurl, for valid entries"""
+
+        # get valid entries (plug_locrepo != '')
+        for plug_url in self.plugurls:
+            plug_name = os.path.basename(urlparse(plug_url).path)
+            try:
+                plug_locrepo = os.path.join(self.pack_path,
+                                            self.config[plug_url]['package'],
+                                            self.config[plug_url]['type'],
+                                            plug_name)
+            except KeyError:
+                plug_locrepo = ''
+            finally:
+                self.config[plug_url]['plug_locrepo'] = plug_locrepo

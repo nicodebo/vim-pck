@@ -22,37 +22,24 @@ def install_cmd(**kwargs):
         specify an alternate configuration file. Used for testing purpose.
     """
 
-    config = utils.readconf()
+    vimpckrc = utils.ConfigFile()
 
-    # get all plugin section
-    pack_path = os.path.expanduser(config['DEFAULT']['pack_path'])
     try:
-        os.makedirs(pack_path)
+        os.makedirs(vimpckrc.pack_path)
     except OSError:
         pass
 
-    plug_urls = [sect for sect in config.sections() if sect != 'DEFAULT']
-
-    # get valid entries (plug_locrepo != '')
-    for plug_url in plug_urls:
-        plug_name = os.path.basename(urlparse(plug_url).path)
-        try:
-            plug_locrepo = os.path.join(pack_path,
-                                        config[plug_url]['package'],
-                                        config[plug_url]['type'], plug_name)
-        except KeyError:
-            plug_locrepo = ''
-        finally:
-            config[plug_url]['plug_locrepo'] = plug_locrepo
-
+    vimpckrc.getplugurls()
+    vimpckrc.tagplugentries()
     # get already installed plugins
-    installed_plug = utils.instplug(pack_path)
+    installed_plug = utils.instplug(vimpckrc.pack_path)
 
     # filter config entries to only get non-installed plugins
+    # TODO: à mettre dans la classe qui ListPlugin
     plug_urls_fil = []
-    for plug_url in plug_urls:
+    for plug_url in vimpckrc.plugurls:
         if not any(os.path.basename(
-            urlparse(config[plug_url]['plug_locrepo']).path)
+            urlparse(vimpckrc.config[plug_url]['plug_locrepo']).path)
                 in s for s in installed_plug):
             plug_urls_fil.append(plug_url)
 
@@ -61,7 +48,7 @@ def install_cmd(**kwargs):
     for plug_url in tqdm(plug_urls_fil):
         temperror = []
         plug_name = os.path.basename(urlparse(plug_url).path)
-        plug_locrepo = config[plug_url]['plug_locrepo']
+        plug_locrepo = vimpckrc.config[plug_url]['plug_locrepo']
 
         try:
             subprocess.run(["git", "clone", plug_url, plug_locrepo],
@@ -86,6 +73,7 @@ def install_cmd(**kwargs):
             message = "\n--> plug name: {0} \nplug url: {1} \ncmd: {2} \nerror code: {3} \nerror message: {4} \n".format(err[0], err[1], " ".join(err[3]), err[2], err[4].decode('UTF-8'))
             print(message)
 
+
 def ls_cmd(**kwargs):
     """list function. This function is launched when the ``vimpck ls``
     command is invoked.
@@ -96,9 +84,9 @@ def ls_cmd(**kwargs):
         filter autostart/optional plugins
     """
 
-    config = utils.readconf()
-    pack_path = os.path.expanduser(config['DEFAULT']['pack_path'])
-    installed_plug = utils.instplug(pack_path)
+    vimpckrc = utils.ConfigFile()
+    # get already installed plugins
+    installed_plug = utils.instplug(vimpckrc.pack_path)
 
     plug = []
     if kwargs['start']:
