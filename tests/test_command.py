@@ -108,6 +108,7 @@ def write_conf_4(temp_dir, monkeypatch):
     monkeypatch.setitem(os.environ, 'VIMPCKRC', str(confpath))
     print(os.environ["VIMPCKRC"])
 
+
 def test_install_cmd_1(write_conf_1, temp_dir):
     """Test vim_pck.command.install_cmd()
 
@@ -186,6 +187,7 @@ def test_install_cmd_3(write_conf_1, temp_dir):
         assert 1
     else:
         assert 0
+
 
 def test_install_cmd_4(write_conf_4, temp_dir):
     """Test vim_pck.command.install_cmd()
