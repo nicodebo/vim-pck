@@ -4,52 +4,41 @@ stored
 
 import os
 import subprocess
+import sys
 from tqdm import tqdm
 from urllib.parse import urlparse
 
 from vim_pck import utils
 
 
-def install_cmd(**kwargs):
+def install_cmd():
     """Install function. This function is launched when the ``vimpck install``
     command is invoked.
-
-    Only install plugin that are currently not present on the pack directory
-
-    Arg:
-        **kwarg (str) : an argument is present, kwargs['config'] only if the
-        --congig flag of the install subcommand was specified. It used to
-        specify an alternate configuration file. Used for testing purpose.
     """
 
     vimpckrc = utils.ConfigFile()
+    plugfilt = utils.UrlFilter()
 
     try:
         os.makedirs(vimpckrc.pack_path)
     except OSError:
         pass
 
+    pluglist = utils.PluginList(vimpckrc.pack_path)
     vimpckrc.getplugurls()
     vimpckrc.tagplugentries()
-    # get already installed plugins
-    installed_plug = utils.instplug(vimpckrc.pack_path)
 
-    # filter config entries to only get non-installed plugins
-    # TODO: à mettre dans la classe qui ListPlugin
-    plug_urls_fil = []
-    for plug_url in vimpckrc.plugurls:
-        if not any(os.path.basename(
-            urlparse(vimpckrc.config[plug_url]['plug_locrepo']).path)
-                in s for s in installed_plug):
-            plug_urls_fil.append(plug_url)
+    plugfilt.install(vimpckrc.valid_plug_entries, pluglist.installed_plug.keys())
 
     # install plugins
     gitcloneerror = []
-    for plug_url in tqdm(plug_urls_fil):
+    for plug_url in tqdm(plugfilt.toinstall_plug):
         temperror = []
         plug_name = os.path.basename(urlparse(plug_url).path)
-        plug_locrepo = vimpckrc.config[plug_url]['plug_locrepo']
-
+        plug_locrepo = os.path.join(vimpckrc.pack_path,
+                                    vimpckrc.config[plug_url]['package'],
+                                    vimpckrc.config[plug_url]['type'],
+                                    plug_name)
         try:
             subprocess.run(["git", "clone", plug_url, plug_locrepo],
                            stderr=subprocess.PIPE, check=True)
@@ -64,7 +53,7 @@ def install_cmd(**kwargs):
             gitcloneerror.append(temperror)
         else:
             message = "Done cloning: %s --> %s" % \
-                      (plug_name, os.path.split(plug_locrepo)[0])
+                      (plug_name, plug_locrepo)
         finally:
             tqdm.write(message)
 
@@ -78,26 +67,26 @@ def ls_cmd(**kwargs):
     """list function. This function is launched when the ``vimpck ls``
     command is invoked.
 
-
     Arg:
         **kwarg (str) : an argument is present, kwargs['start']/kwarg['opt'] to
         filter autostart/optional plugins
     """
 
     vimpckrc = utils.ConfigFile()
-    # get already installed plugins
-    installed_plug = utils.instplug(vimpckrc.pack_path)
+    if not os.path.isdir(vimpckrc.pack_path):
+        sys.exit("{} does not exist. Use vimpck install".format(vimpckrc.pack_path))
 
-    plug = []
+    plugls = utils.PluginList(vimpckrc.pack_path)
+
     if kwargs['start']:
-        for key in installed_plug.keys():
-            if installed_plug[key] == 'start':
-                plug.append(key)
+        plugls.autostart()
+        plug = plugls.start_plug
     elif kwargs['opt']:
-        for key in installed_plug.keys():
-            if installed_plug[key] == 'opt':
-                plug.append(key)
+        plugls.optional()
+        plug = plugls.opt_plug
     else:
-        for key in installed_plug.keys():
+        plug = []
+        for key in plugls.installed_plug.keys():
             plug.append(key)
+
     return plug
