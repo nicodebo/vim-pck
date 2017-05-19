@@ -25,9 +25,19 @@ def ls(**kwargs):
     print(*command.ls_cmd(**kwargs), sep='\n')
 
 
+@click.command(context_settings=CONTEXT_SETTINGS)
+@click.argument('plug', required=False, nargs=-1)
+# @click.option('--force', '-f', is_flag=True, help='force upgrade')
+def upgrade(**kwargs):
+    """Upgrade installed package(s)"""
+    command.upgrade_cmd(**kwargs)
+
+
 main.add_command(install)
 main.add_command(ls)
+main.add_command(upgrade)
 
 
 if __name__ == '__main__':
     main()
+

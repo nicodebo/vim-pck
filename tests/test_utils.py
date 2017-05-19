@@ -1,5 +1,7 @@
 import configparser
 import os
+import pytest
+
 from vim_pck import utils
 
 
@@ -52,6 +54,27 @@ class Test_ConfigFile():
         diff = set(vimpckrc.plugurls).difference(set(vimpckrc.valid_plug_entries))
 
         if ('neomake' in str(diff)) and (len(diff) == 1):
+            assert 1
+        else:
+            assert 0
+
+    def test_nonfreezedurl(self, write_conf_4):
+        """ Some plugin from the configuration file write_conf_4 are freezed
+        (i.e. vim-commentary) nonfreezedurl should append all the plugin except
+        vim-commentary in the nonfreeze_urls attribut
+        """
+        vimpckrc = utils.ConfigFile()
+        vimpckrc.getplugurls()
+        vimpckrc.tagplugentries()
+        vimpckrc.nonfreezedurl()
+
+        config = configparser.ConfigParser()
+        config.read(os.environ["VIMPCKRC"])
+        plug_urls = [sect for sect in config.sections() if sect != 'DEFAULT']
+
+        diff = set(plug_urls).difference(set(vimpckrc.nonfreeze_urls))
+
+        if ('vim-commentary' in str(diff)) and (len(diff) == 1):
             assert 1
         else:
             assert 0
@@ -142,3 +165,76 @@ class Test_UrlFilter:
             assert 1
         else:
             assert 0
+
+    def test_upgrade_no_pack_path(self, temp_dir, write_conf_1):
+        """ In this scenario, we try to upgrade all plugins while the pack
+        path does not exist """
+
+        vimpckrc = utils.ConfigFile()
+        vimpckrc.getplugurls()
+        plugfilt = utils.UrlFilter()
+        with pytest.raises(NotADirectoryError) as excinfo:
+            plugfilt.upgrade(vimpckrc.nonfreeze_urls,
+                             os.path.join(vimpckrc.pack_path,
+                                          "non_existent_pack_path"), [])
+
+    def test_upgrade_all_plugin_1(self, write_conf_1):
+        """ upgrade all plugin + 0 freezed plugins in the configuration file
+        """
+
+        vimpckrc = utils.ConfigFile()
+        vimpckrc.getplugurls()
+        vimpckrc.tagplugentries()
+        vimpckrc.nonfreezedurl()
+        plugfilt = utils.UrlFilter()
+        pluglist = []
+        plugfilt.upgrade(vimpckrc.nonfreeze_urls, vimpckrc.pack_path, pluglist)
+
+        if not set(vimpckrc.nonfreeze_urls).symmetric_difference(set(plugfilt.toupgrade_plug)):
+            assert 1
+        else:
+            assert 0
+
+    def test_upgrade_all_plugin_2(self, write_conf_4):
+        """ upgrade all plugin + 1 freezed plugins in the configuration file
+        """
+
+        vimpckrc = utils.ConfigFile()
+        vimpckrc.getplugurls()
+        vimpckrc.tagplugentries()
+        vimpckrc.nonfreezedurl()
+        plugfilt = utils.UrlFilter()
+        pluglist = []
+        plugfilt.upgrade(vimpckrc.nonfreeze_urls, vimpckrc.pack_path, pluglist)
+
+        config = configparser.ConfigParser()
+        config.read(os.environ["VIMPCKRC"])
+        plug_urls = [sect for sect in config.sections() if sect != 'DEFAULT']
+
+        diff = set(plug_urls).symmetric_difference(set(plugfilt.toupgrade_plug))
+
+        if ('vim-commentary' in str(diff)) and (len(diff) == 1):
+            assert 1
+        else:
+            assert 0
+
+    def test_upgrade_3_plugin_1(self, write_conf_1):
+        """ upgrade 3 plugin + 0 freezed plugins in the configuration file
+        """
+
+        vimpckrc = utils.ConfigFile()
+        vimpckrc.getplugurls()
+        vimpckrc.tagplugentries()
+        vimpckrc.nonfreezedurl()
+        plugfilt = utils.UrlFilter()
+        pluglist = ['vim-mustache-handlebars', 'vim-dispatch',
+                    'vim-colors-solarized']
+        plugfilt.upgrade(vimpckrc.nonfreeze_urls, vimpckrc.pack_path, pluglist)
+
+        diff = set(vimpckrc.nonfreeze_urls).symmetric_difference(set(plugfilt.toupgrade_plug))
+
+        if ('vim-commentary' in str(diff)) and (len(diff) == 1):
+            assert 1
+        else:
+            assert 0
+

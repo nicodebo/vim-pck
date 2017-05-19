@@ -105,3 +105,36 @@ def write_conf_3(temp_dir, monkeypatch):
     with open(confpath, 'w') as configfile:
         config.write(configfile)
     monkeypatch.setitem(os.environ, 'VIMPCKRC', str(confpath))
+
+@pytest.fixture()
+def write_conf_4(temp_dir, monkeypatch):
+    """ A clean configuration file with freeze flag
+
+    1. Write a vimpck configuration file and save it
+    2. Set the VIMPCKRC env variable to the path of the created configuration
+        file
+    """
+    config = configparser.ConfigParser()
+    dirtest = 'ConfigFile'
+    basepath = temp_dir.mktemp(dirtest)
+    confpath = basepath.join('config.ini')
+    config['DEFAULT'] = {'pack_path': basepath}
+    config['https://github.com/tpope/vim-commentary'] = \
+        {'package': 'common',
+            'type': 'start',
+            'freeze': 'true'}
+    config['https://github.com/tpope/vim-dispatch'] = \
+        {'package': 'common',
+            'type': 'opt'}
+    config['https://github.com/mustache/vim-mustache-handlebars'] = \
+        {'package': 'filetype',
+            'type': 'start'}
+    config['https://github.com/altercation/vim-colors-solarized'] = \
+        {'package': 'colors',
+            'type': 'start',
+            'freeze': 'false'}
+    with open(confpath, 'w') as configfile:
+        config.write(configfile)
+    monkeypatch.setitem(os.environ, 'VIMPCKRC', str(confpath))
+    print(os.environ["VIMPCKRC"])
+

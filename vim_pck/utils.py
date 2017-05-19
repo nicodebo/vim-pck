@@ -3,11 +3,14 @@ from itertools import compress
 import os
 import sys
 from urllib.parse import urlparse
+from posixpath import basename
 
 
 class ConfigFile:
     """This class define the configuration file and method that allows to
     manipulate it"""
+    # TODO: Refactoring Idea: Would it be possible to make a class that inherit
+    # from configparser.ConfigParser() class ?
 
     def __init__(self):
         self.config = configparser.ConfigParser()
@@ -15,6 +18,7 @@ class ConfigFile:
         self.pack_path = ""
         self.plugurls = []  # list of all url section
         self.valid_plug_entries = []  # list of url which entries are valid
+        self.nonfreeze_urls = []  # list of url which are valid and non freezed
         self.readconf()
         self.getpackpath()
 
@@ -41,7 +45,8 @@ class ConfigFile:
     def tagplugentries(self):
         """add a key/value pair, plug_locrepo, to self.config
         plug_locrepo = '', for invalid entries
-        plug_locrepo = plugurl, for valid entries"""
+        plug_locrepo = plugurl, for valid entries
+        An invalid plug entries is one with package or type key missing"""
 
         # get valid entries (plug_locrepo != '')
         for plug_url in self.plugurls:
@@ -53,6 +58,22 @@ class ConfigFile:
                 pass
             else:
                 self.valid_plug_entries.append(plug_url)
+
+    def nonfreezedurl(self):
+        """ Get the list of plugins url that are not marked as freezed"""
+        self.nonfreeze_urls = []
+        freeze = False
+        for url in self.valid_plug_entries:
+            freeze = False
+            try:
+                freeze_val = self.config[url]['freeze']
+            except KeyError:
+                pass
+            else:
+                if freeze_val.lower() == 'yes' or freeze_val.lower() == 'true':
+                    freeze = True
+            if not freeze:
+                self.nonfreeze_urls.append(url)
 
 
 class PluginList:
@@ -127,6 +148,7 @@ class UrlFilter:
 
     def __init__(self):
         self.toinstall_plug = []
+        self.toupgrade_plug = []
 
     def install(self, plugurlconf, plug_pack_path):
         """ Filter the list of plugin to be installed
@@ -147,4 +169,37 @@ class UrlFilter:
             if not any(os.path.basename(urlparse(plug_url).path)
                        in s for s in plug_pack_path):
                 self.toinstall_plug.append(plug_url)
-# TODO: inclure cette nouvelle classe dans command.py et dans test_command.py.
+        # TODO: check if pack path exists / not empty ?
+
+    def upgrade(self, nonfreezedurl, plug_pack_path, pluglist):
+        """ Filter the list of plugin to be upgraded
+
+        Arg:
+            nonfreezedurl (str list): list of valid plugins url from the
+            vimpckrc configuration file that are not freezed
+            plug_pack_path (str): the package path
+            pluglist (str list): list of plugins to be updated, if empty update
+            all plugins
+
+        The plugins to be upgraded are : The plugins that the user want to
+        upgrade. The plugins that are present on the
+        pack_path which have a valid URL minus filtered by the plugin the user
+        wants to upgrade
+        """
+        self.toupgrade_plug = []
+        if os.path.isdir(plug_pack_path):
+            if not pluglist:
+                self.toupgrade_plug = self.toupgrade_plug + nonfreezedurl
+            else:
+                for url in nonfreezedurl:
+                    base = basename(urlparse(url).path)
+                    if any(base in s for s in pluglist):
+                        self.toupgrade_plug.append(url)
+        else:
+            raise NotADirectoryError("The package path does not exists !")
+        # TODO: This exception should be raised in the ConfigFile class. It
+        # doesn't make sence to raise it here.
+
+# TODO: replace os.path.basename par posixpath.basename:
+# http://stackoverflow.com/questions/449775/how-can-i-split-a-url-string-up-into-separate-parts-in-python
+

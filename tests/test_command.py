@@ -1,5 +1,7 @@
 import configparser
 import os
+from urllib.parse import urlparse
+import subprocess
 from vim_pck import command
 from vim_pck import utils
 
@@ -154,3 +156,82 @@ def test_ls_cmd(write_conf_1, temp_dir):
         assert 1
     else:
         assert 0
+
+
+def test_upgrade_cmd(write_conf_1):
+    """Test vim_pck.utils.upgrade_cmd()
+
+    Install the plugin from the configuration file but from a previous commit.
+    Then upgrade all plugins and compare the previous and current commit.
+    """
+
+    config = configparser.ConfigParser()
+    config.read(os.environ["VIMPCKRC"])
+    plug_urls = [sect for sect in config.sections() if sect != 'DEFAULT']
+    pack_path = config['DEFAULT']['pack_path']
+
+    info = []  # Store url, later and older sha
+    for url in plug_urls:
+        urlinfo = []
+        plug_name = os.path.basename(urlparse(url).path)
+        plug_locrepo = os.path.join(pack_path,
+                                    config[url]['package'],
+                                    config[url]['type'],
+                                    plug_name)
+        subprocess.run(["git", "clone", url, plug_locrepo], check=True)
+
+        # get the current sha
+        a = subprocess.run(["git", "-C", plug_locrepo, "rev-list", "-1", "HEAD"],
+                           stderr=subprocess.PIPE, stdout=subprocess.PIPE,
+                           check=True)
+
+        master_sha = a.stdout.decode('UTF-8').rstrip()
+
+        # get 4 sha below the current sha
+        b = subprocess.run(["git", "-C", plug_locrepo, "rev-list", "-1", "HEAD~3"],
+                           stderr=subprocess.PIPE, stdout=subprocess.PIPE,
+                           check=True)
+
+        older_sha = b.stdout.decode('UTF-8').rstrip()
+        urlinfo.append(url)
+        urlinfo.append(plug_locrepo)
+        urlinfo.append(master_sha)
+        urlinfo.append(older_sha)
+        info.append(urlinfo)
+
+        subprocess.run(["git", "-C", plug_locrepo, "reset", "--hard", older_sha],
+                       check=True)
+
+    # check that the working tree has been well downgraded
+    for elem in info:
+        # get sha
+
+        c = subprocess.run(["git", "-C", elem[1], "rev-list", "-1", "HEAD"],
+                           stderr=subprocess.PIPE, stdout=subprocess.PIPE,
+                           check=True)
+
+        master_sha = c.stdout.decode('UTF-8').rstrip()
+        if master_sha == elem[3]:
+            assert 1
+        else:
+            assert 0
+
+    # upgrade all plugins
+    command.upgrade_cmd()
+
+    #     # TODO: if one of the repositories I'm using for tests is updated
+    #     # during this particular test, then, it might fail !!
+
+    for elem in info:
+        # get sha
+        c = subprocess.run(["git", "-C", elem[1], "rev-list", "-1", "HEAD"],
+                           stderr=subprocess.PIPE, stdout=subprocess.PIPE,
+                           check=True)
+
+        master_sha = c.stdout.decode('UTF-8').rstrip()
+
+        if master_sha == elem[2]:
+            assert 1
+        else:
+            assert 0
+
