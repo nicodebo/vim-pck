@@ -44,13 +44,14 @@ To uninstall:
 ```dosini
 ; example vimpck configuration file
 [DEFAULT]
-;The built in package directory. See :help packages 
+;The built in package directory. See :help packages
 pack_path=~/.vim/pack
 ;pack_path= ~/.local/share/nvim/site/pack for neovim
 
 [https://github.com/tpope/vim-commentary]
 package = common
 type = start
+freeze = True ;Don't update vim-commentary when launching vimpck upgrade
 
 [https://github.com/tpope/vim-dispatch]
 package = common
@@ -64,12 +65,17 @@ type = start
 package = colors
 type = start
 ```
- 
+
 ### Usage
- 
+
 To use it:
 
-    `$ vimpck --help`
+* `$ vimpck install` : install plugins from the configuration file
+* `$ vimpck ls` : list all plugins
+* `$ vimpck ls --start` : list plugins that are automatically loaded
+* `$ vimpck ls --opt` : list plugins that have to be loaded manually
+* `$ vimpck update` : update all plugins that are not freezed
+* `$ vimpck update <plug1>...` : only update <plug1>
 
 ### File
 
@@ -90,11 +96,8 @@ To use it:
 - [x] vimpck list, list installed plugins
 - [x] vimpck list --start, list autostarting plugins
 - [x] vimpck list --opt, list optional plugins
-- [ ] vimpck upgrade, upgrade non freezed plugins
-- [ ] vimpck upgrade <plugin>, upgrade a specific plugin
-- [ ] vimpck upgrade -f, force upgrade all plugin no matter if they are
-      freezed
-- [ ] vimpck upgrade -f <plugin>, force upgrade a specific plugin
+- [x] vimpck upgrade, upgrade non freezed plugins
+- [x] vimpck upgrade <plugin>, upgrade a specific plugin
 - [ ] use sqlite to store package info (installation date, last upgrade,
       current commit, description,…) ?
 - [ ] vimpck sync, search for upgrade and display the new commits
@@ -103,6 +106,14 @@ To use it:
 - [ ] vimpck clean, remove commented out/location changed plugins
 - [ ] find a better way to update vimpck. (pypi repo ?)
 - [ ] Add post install hooks, (ex: generate documentation)
+
+## Related projects
+
+* [minpac](https://github.com/k-takata/minpac): vim plugin
+* [infect](https://github.com/csexton/infect): command-line tool build in ruby.
+* [pack](https://github.com/maralla/pack): command-line tool build in rust.
+* [vim8-pack](https://github.com/mkarpoff/vim8-pack): command-line tool in
+  bash.
 
 ## Note
 
