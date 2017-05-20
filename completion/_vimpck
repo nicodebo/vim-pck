@@ -1,0 +1,39 @@
+#compdef vimpck
+
+local context
+local state line ret=1
+local plugins
+plugins=($(vimpck ls 2>/dev/null))
+
+_arguments -C \
+  '1: :->cmds' \
+  '2:: :->args' && ret=0
+
+
+case $state in
+  cmds)
+    _values "vimpck command" \
+        "install[install plugins defined in the vimpckrc]" \
+        "upgrade[upgrade plugins]" \
+        "ls[list plugins]"
+    ret=0
+    ;;
+  args)
+    case $line[1] in
+      upgrade)
+        [[ -n "$plugins" ]] && _values 'plugins' $plugins
+        ret=0
+        ;;
+      ls)
+        _values "vimpck ls command" \
+            "--start[list only autostarting plugins]" \
+            "--opt[list only optional plugins]"
+        ret=0
+        ;;
+    esac
+    ;;
+esac
+
+return ret
+
+# TODO: find out how to complete `vimpck upgrade` more than one time

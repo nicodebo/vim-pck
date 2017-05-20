@@ -88,6 +88,20 @@ To use it:
 
    example : `export VIMPCKRC=/path/to/conf/name`
 
+### Completion
+
+A zsh completion function is provided in the `completion` folder of this
+repository.
+
+To use it copy `_vimpck` somewhere in the `$fpath` environement variable of zsh
+and make sure the completion module of zsh is loaded by putting these following
+lines in your `.zshrc`:
+
+```bash
+autoload -U compinit
+compinit
+```
+
 ## TODO
 
 - [x] vimpck install, install plugins from configuration file
