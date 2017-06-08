@@ -9,6 +9,8 @@ from tqdm import tqdm
 from urllib.parse import urlparse
 
 from vim_pck import utils
+from vim_pck import spinner
+from vim_pck import git
 
 
 def install_cmd():
@@ -30,37 +32,40 @@ def install_cmd():
 
     plugfilt.install(vimpckrc.valid_plug_entries, pluglist.installed_plug.keys())
 
-    # install plugins
-    gitcloneerror = []
-    for plug_url in tqdm(plugfilt.toinstall_plug):
-        temperror = []
-        plug_name = os.path.basename(urlparse(plug_url).path)
-        plug_locrepo = os.path.join(vimpckrc.pack_path,
-                                    vimpckrc.config[plug_url]['package'],
-                                    vimpckrc.config[plug_url]['type'],
-                                    plug_name)
-        try:
-            subprocess.run(["git", "clone", plug_url, plug_locrepo],
-                           stderr=subprocess.PIPE, check=True)
-        except subprocess.CalledProcessError as e:
-            message = "Failed cloning : exit code: %s --> %s" % \
-                      (e.returncode, plug_name)
-            temperror.append(plug_name)
-            temperror.append(plug_url)
-            temperror.append(e.returncode)
-            temperror.append(e.cmd)
-            temperror.append(e.stderr)
-            gitcloneerror.append(temperror)
-        else:
-            message = "Done cloning: %s --> %s" % \
-                      (plug_name, plug_locrepo)
-        finally:
-            tqdm.write(message)
-
-    if gitcloneerror:
-        for err in gitcloneerror:
-            message = "\n--> plug name: {0} \nplug url: {1} \ncmd: {2} \nerror code: {3} \nerror message: {4} \n".format(err[0], err[1], " ".join(err[3]), err[2], err[4].decode('UTF-8'))
-            print(message)
+    if not plugfilt.toinstall_plug:
+        print('no plugin to install !')
+    else:
+        print(':: Installing plugins...')
+        for remote_url in plugfilt.toinstall_plug:
+            info = " {}".format(remote_url)
+            seq = 'LOSANGE'
+            interval = 0.15
+            a_spinner = spinner.Spinner(info, interval, seq)
+            local_dir = os.path.join(vimpckrc.pack_path,
+                                     vimpckrc.config[remote_url]['package'],
+                                     vimpckrc.config[remote_url]['type'])
+            try:
+                os.makedirs(local_dir)
+            except OSError:
+                pass
+            #TODO: make a wrapper function for directory creation or integrate
+            # it into the git.Clone class
+            tmp_cloner = git.Clone(remote_url, local_dir)
+            a_spinner.start()
+            out = tmp_cloner.git_cmd()
+            a_spinner.stop()
+            if out == 0:
+                print("{}: \u001b[32mDone ✓\u001b[0m".format(info))
+            else:
+                print("{}: \u001b[31mFail ✗\u001b[0m".format(info))
+                print("  {}".format(tmp_cloner.error_proc.stderr))
+            del a_spinner
+            del tmp_cloner
+            #TODO: Make some helper function that enclose some string into ANSI
+            # escape sequence
+            #TODO: Add an offset parameter for the spinner message
+            #TODO: Make a wrapper function that add x number of space before
+            # some string
 
 
 def ls_cmd(**kwargs):
