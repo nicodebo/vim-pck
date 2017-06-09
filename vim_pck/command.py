@@ -37,10 +37,11 @@ def install_cmd():
     else:
         print(':: Installing plugins...')
         for remote_url in plugfilt.toinstall_plug:
-            info = " {}".format(remote_url)
+            info = "{}".format(remote_url)
             seq = 'LOSANGE'
             interval = 0.15
-            a_spinner = spinner.Spinner(info, interval, seq)
+            offset = 1
+            a_spinner = spinner.Spinner(info, interval, seq, offset)
             local_dir = os.path.join(vimpckrc.pack_path,
                                      vimpckrc.config[remote_url]['package'],
                                      vimpckrc.config[remote_url]['type'])

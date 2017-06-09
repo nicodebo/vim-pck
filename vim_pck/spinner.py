@@ -40,13 +40,13 @@ class Spinner():
     """A shell spinner
     """
 
-    def __init__(self, busy_message="", interval=0.25, sequence="basic"):
+    def __init__(self, message="", interval=0.25, sequence="BASIC", offset=1):
         self.stop_running = threading.Event()
         self.spin_thread = threading.Thread(target=self.init_spin)
         self.interval = interval  # speed rotation
-        self.busy_message = busy_message  # spinner text
+        self.message = message  # spinner text
+        self.offset = offset  # number of space to pad on the left
         self.spinner_cycle = itertools.cycle(self.set_spinner_seq(sequence))
-        self.cur_mess_tmp = ""  # store current spinner message
 
     def set_spinner_seq(self, sequence):
         seq_list = [name for name, members in Sequence.__members__.items()]
@@ -62,20 +62,21 @@ class Spinner():
     def stop(self):
         self.stop_running.set()
         self.spin_thread.join()
-        # make sure to clear the line in case printing something shorter
+        # make sure to clear the line in case printing something shorter after
         sys.stdout.write("\033[K")
 
     def init_spin(self):
         while not self.stop_running.is_set():
-            if not self.busy_message:
-                self.cur_mess_tmp = next(self.spinner_cycle)
+            if not self.message:
+                cur_mess = next(self.spinner_cycle)
             else:
-                self.cur_mess_tmp = "{} {}".format(next(self.spinner_cycle),
-                                                   self.busy_message)
-            sys.stdout.write(self.cur_mess_tmp)
+                cur_mess = "{} {}".format(next(self.spinner_cycle),
+                                          self.message)
+            cur_mess = cur_mess.rjust(len(cur_mess) + self.offset, ' ')
+            sys.stdout.write(cur_mess)
             sys.stdout.flush()
             time.sleep(self.interval)
-            sys.stdout.write('\b' * len(self.cur_mess_tmp))
+            sys.stdout.write('\b' * len(cur_mess))
 
 
 # Quick exemple usage
@@ -84,23 +85,23 @@ if __name__ == "__main__":
     def do_work():
         time.sleep(3)
 
-    messa = 'git clone processing'
+    messa = 'git clone repo'
     speed = 0.1
     seq = 'LOSANGE'
+    off = 2
     spinner1 = Spinner()
-    spinner2 = Spinner(messa, speed, seq)
-    print('::starting work task 1')
+    spinner2 = Spinner(messa, speed, seq, off)
+
+    print('::start task 1')
     spinner1.start()
-
     do_work()
-
     spinner1.stop()
-    print(':: task 1 done')
+    print(' - task 1 done')
 
-    print('::starting work task 2')
+    print('::start task 2')
     spinner2.start()
     do_work()
     spinner2.stop()
-    print(':: task 2 done')
-    print('all done!')
+    print(' - task 2 done')
+    print('--all done!--')
 
