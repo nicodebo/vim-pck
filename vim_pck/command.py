@@ -11,6 +11,7 @@ from urllib.parse import urlparse
 from vim_pck import utils
 from vim_pck import spinner
 from vim_pck import git
+from vim_pck import ansi
 
 
 def install_cmd():
@@ -35,12 +36,16 @@ def install_cmd():
     if not plugfilt.toinstall_plug:
         print('no plugin to install !')
     else:
-        print(':: Installing plugins...')
+        ansi_tran = ansi.Parser()
+        # print(ansi.Colors16.White.enclose(':: Installing plugins...'))
+        title = "<bold>:: Installing plugins...<reset>"
+        print(ansi_tran.sub(title))
+        seq = 'LOSANGE'
+        interval = 0.15
+        offset = 1
+        pad = ' '
         for remote_url in plugfilt.toinstall_plug:
             info = "{}".format(remote_url)
-            seq = 'LOSANGE'
-            interval = 0.15
-            offset = 1
             a_spinner = spinner.Spinner(info, interval, seq, offset)
             local_dir = os.path.join(vimpckrc.pack_path,
                                      vimpckrc.config[remote_url]['package'],
@@ -56,18 +61,24 @@ def install_cmd():
             out = tmp_cloner.git_cmd()
             a_spinner.stop()
             if out == 0:
-                print("{}: \u001b[32mDone ✓\u001b[0m".format(info))
+                # status = ansi.Colors16.green.enclose("Done ✓")
+                # status = "{}: {}".format(info, status)
+                status = "{}: <green>Done ✓<reset>".format(info)
+                status = status.rjust(len(status) + offset, pad)
+                status = ansi_tran.sub(status)
+                print(status)
             else:
-                print("{}: \u001b[31mFail ✗\u001b[0m".format(info))
-                print("  {}".format(tmp_cloner.error_proc.stderr))
+                # status = ansi.Colors16.red.enclose("Fail ✗")
+                status = "{}: <red>Fail ✗<reset>".format(info)
+                status = status.rjust(len(status) + offset, pad)
+                status = ansi_tran.sub(status)
+                print(status)
+                err_status = tmp_cloner.error_proc.stderr.decode('UTF-8')
+                err_status = err_status.rjust(len(err_status) + offset + 2,
+                                              pad)
+                print(err_status)
             del a_spinner
             del tmp_cloner
-            #TODO: Make some helper function that enclose some string into ANSI
-            # escape sequence
-            #TODO: Add an offset parameter for the spinner message
-            #TODO: Make a wrapper function that add x number of space before
-            # some string
-
 
 def ls_cmd(**kwargs):
     """list function. This function is launched when the ``vimpck ls``
