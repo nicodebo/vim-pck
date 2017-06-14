@@ -152,5 +152,5 @@ if __name__ == "__main__":
     ansi_parser = Parser()
     print(ansi_parser.ansi_corr)
     ex_text = "<underline><red>some text<reset>"
-    print(ansi_parser.sub(ansi_parser.ansi_corr, ex_text))
+    print(ansi_parser.sub(ex_text))
 
