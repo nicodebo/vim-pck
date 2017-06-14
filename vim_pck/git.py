@@ -82,7 +82,6 @@ class Clone(Git):
     def git_cmd(self):
         """launch git clone command"""
 
-        out = 1
         cmd = ["git", "-C", self.local_dir, "clone", self.remote_url]
         out, self.compl_proc, self.error_proc = ex_subprocess(cmd)
         return out
@@ -100,7 +99,6 @@ class Pull(Git):
         Update local repository
         """
 
-        out = 1
         cmd = ["git", "-C", self.local_dir, "pull"]
         out, self.compl_proc, self.error_proc = ex_subprocess(cmd)
         return out
@@ -118,7 +116,6 @@ class RevList(Git):
     def git_cmd(self):
         """launch git rev-list -1 HEAD command"""
 
-        out = 1
         cmd = ["git", "-C", self.local_dir, "rev-list", "-1", "HEAD"]
         out, self.compl_proc, self.error_proc = ex_subprocess(cmd)
         return out
@@ -140,7 +137,6 @@ class Log(Git):
         command
         """
 
-        out = 1
         cmd = ["git", "--no-pager", "-C",
                self.local_dir, "log", "--color",
                "--graph", "--oneline", "--decorate",
@@ -184,4 +180,6 @@ if __name__ == "__main__":
     else:
         print('ok')
         print(test4.retrieve_stdout())
+
+# TODO: add recursive flag to git clone command
 
