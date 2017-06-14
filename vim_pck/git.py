@@ -83,6 +83,8 @@ class Clone(Git):
         """launch git clone command"""
 
         cmd = ["git", "-C", self.local_dir, "clone", self.remote_url]
+        # TODO: check if .gitmodules is present. If it is launch the command
+        # that init all submodules
         out, self.compl_proc, self.error_proc = ex_subprocess(cmd)
         return out
 
@@ -100,6 +102,9 @@ class Pull(Git):
         """
 
         cmd = ["git", "-C", self.local_dir, "pull"]
+        # TODO: see if this command also pull the submodule. No it does not.
+        # For repo that has submodule, git submodule update --recursive need to
+        # be called
         out, self.compl_proc, self.error_proc = ex_subprocess(cmd)
         return out
 
@@ -145,9 +150,27 @@ class Log(Git):
         return out
 
 
+class IsGitWorkTree(Git):
+    """git rev-parse --is-inside-work-tree command
+
+    Check if a directory is git repository
+    """
+
+    def __init__(self, local_dir):
+        super().__init__(local_dir)
+
+    def git_cmd(self):
+        """launch command"""
+        cmd = ["git", "-C", self.local_dir,
+               "rev-parse", "--is-inside-work-tree"]
+        out, self.compl_proc, self.error_proc = ex_subprocess(cmd)
+        return out
+
+
 # Quick testing
 if __name__ == "__main__":
 
+    print(":: Test Clone...")
     test = Clone('https://github.com/nicodebo/vim-pck', '/tmp')
     if test.git_cmd() == 1:
         print('not ok')
@@ -156,6 +179,7 @@ if __name__ == "__main__":
         print('ok')
         print(test.retrieve_stdout())
 
+    print(":: Test Pull...")
     test2 = Pull('/tmp/vim-pck')
     if test2.git_cmd() == 1:
         print('not ok')
@@ -164,6 +188,7 @@ if __name__ == "__main__":
         print('ok')
         print(test2.retrieve_stdout())
 
+    print(":: Test RevList...")
     test3 = RevList('/tmp/vim-pck')
     if test3.git_cmd() == 1:
         print('not ok')
@@ -172,6 +197,7 @@ if __name__ == "__main__":
         print('ok')
         print(test3.retrieve_stdout())
 
+    print(":: Test Log...")
     test4 = Log('/tmp/vim-pck', '4b6a95fe14a08fd9bae7930e2cea1a1081509ee7',
                 'a46335e7982f8ff418c2449df4892e61d024137b')
     if test4.git_cmd() == 1:
@@ -181,5 +207,21 @@ if __name__ == "__main__":
         print('ok')
         print(test4.retrieve_stdout())
 
-# TODO: add recursive flag to git clone command
+    print(":: Test IsGitWorkTree, is a git repo: True...")
+    test5 = IsGitWorkTree('/tmp/vim-pck')
+    if test5.git_cmd() == 1:
+        print('not ok')
+        print(test4.error_proc)
+    else:
+        print('ok')
+        print(test4.retrieve_stdout())
+
+    print(":: Test IsGitWorkTree, is a git repo: False...")
+    test6 = IsGitWorkTree('/tmp')
+    if test6.git_cmd() == 1:
+        print('not ok')
+        print(test4.error_proc)
+    else:
+        print('ok')
+        print(test4.retrieve_stdout())
 
