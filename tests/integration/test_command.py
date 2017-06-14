@@ -29,7 +29,9 @@ class Test_Install_cmd:
 
         plugls = utils.PluginList(pack_path)
 
-        if not set(plug_names).symmetric_difference(set(plugls.installed_plug.keys())):
+        pluglist = [elem.split('/')[2] for elem in plugls.installed_plug.keys()]
+
+        if not set(plug_names).symmetric_difference(set(pluglist)):
             assert 1
         else:
             assert 0
@@ -52,8 +54,9 @@ class Test_Install_cmd:
 
         command.install_cmd()
         plugls = utils.PluginList(pack_path)
+        pluglist = [elem.split('/')[2] for elem in plugls.installed_plug.keys()]
 
-        diff = set(plugls.installed_plug.keys()).symmetric_difference(plug_names)
+        diff = set(pluglist).symmetric_difference(plug_names)
         if ('neomake' in str(diff)) and (len(diff) == 1):
             assert 1
         else:
@@ -74,7 +77,9 @@ class Test_Install_cmd:
         command.install_cmd()
         plugls = utils.PluginList(pack_path)
 
-        if not set(plug_names).symmetric_difference(set(plugls.installed_plug.keys())):
+        pluglist = [elem.split('/')[2] for elem in plugls.installed_plug.keys()]
+
+        if not set(plug_names).symmetric_difference(set(pluglist)):
             assert 1
         else:
             assert 0
@@ -82,7 +87,8 @@ class Test_Install_cmd:
         command.install_cmd()
         plugls = utils.PluginList(pack_path)
 
-        if not set(plug_names).symmetric_difference(set(plugls.installed_plug.keys())):
+        pluglist = [elem.split('/')[2] for elem in plugls.installed_plug.keys()]
+        if not set(plug_names).symmetric_difference(set(pluglist)):
             assert 1
         else:
             assert 0
@@ -140,6 +146,8 @@ def test_ls_cmd(write_conf_1, temp_dir):
     plug_names = [os.path.basename(i) for i in plug_urls]
     allplug = command.ls_cmd(start=False, opt=False)
 
+    allplug = [elem.split('/')[2] for elem in allplug]
+
     if not set(allplug).symmetric_difference(set(plug_names)):
         assert 1
     else:
@@ -148,6 +156,7 @@ def test_ls_cmd(write_conf_1, temp_dir):
     plug_names_start = [os.path.basename(i) for i in plug_urls if config[i]['type'] == 'start']
     startplug = command.ls_cmd(start=True, opt=False)
 
+    startplug = [elem.split('/')[2] for elem in startplug if elem.split('/')[1] == "start"]
     if not set(startplug).symmetric_difference(set(plug_names_start)):
         assert 1
     else:
@@ -155,6 +164,7 @@ def test_ls_cmd(write_conf_1, temp_dir):
 
     plug_names_opt = [os.path.basename(i) for i in plug_urls if config[i]['type'] == 'opt']
     optplug = command.ls_cmd(start=False, opt=True)
+    optplug = [elem.split('/')[2] for elem in optplug if elem.split('/')[1] == "opt"]
 
     if not set(optplug).symmetric_difference(set(plug_names_opt)):
         assert 1

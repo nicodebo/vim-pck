@@ -89,6 +89,7 @@ class PluginList:
         self.instplug()
 
     # http://stackoverflow.com/questions/229186/os-walk-without-digging-into-directories-below
+    # TODO: move it outside of the class or make it a staticmethod
     def walklevel(self, some_dir, level=1):
         some_dir = some_dir.rstrip(os.path.sep)
         assert os.path.isdir(some_dir)
@@ -123,11 +124,14 @@ class PluginList:
         fil = [(i - j) == 0 for i, j in zip([max(dirlen)] * len(dirlen), dirlen)]
         installed_plug_dir = list(compress(installed_plug_dir, fil))
 
+        # keep only the 3 last path parts <package>/{<start>|<opt>}/<plugin>
+        installed_plug_dir = [os.path.relpath(elem, self.pack_path) for elem in installed_plug_dir]
+
         for plug in installed_plug_dir:
             if "start" in plug:
-                self.installed_plug[os.path.basename(plug)] = "start"
+                self.installed_plug[plug] = "start"
             else:
-                self.installed_plug[os.path.basename(plug)] = "opt"
+                self.installed_plug[plug] = "opt"
 
     def autostart(self):
         self.start_plug = []
@@ -140,6 +144,18 @@ class PluginList:
         for key in self.installed_plug.keys():
             if self.installed_plug[key] == 'opt':
                 self.opt_plug.append(key)
+    # TODO: either make a more robust --start and --opt (only the middle member
+    # of the path has to be checked for start or opt,  or drop those option and
+    # let the user use grep (i.e. vimpck ls | grep "pattern")
+
+    # TODO: Add an option to allow colorizing the output of the list command.
+    # Maybe one color for each part of the path
+
+    # TODO: All the test are broken because they rely on this class :S, make
+    # something more robust
+
+    # TODO: Add the number of plugin listed at the top like the ll command
+    # show the size.
 
 
 class UrlFilter:

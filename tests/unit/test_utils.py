@@ -102,18 +102,22 @@ def test_PluginList(temp_dir):
     plugls.autostart()
     plugls.optional()
 
-    if not set(plugins).symmetric_difference(set(plugls.installed_plug.keys())):
+    pluglist = [elem.split('/')[2] for elem in plugls.installed_plug.keys()]
+    plugstart = [elem.split('/')[2] for elem in plugls.installed_plug.keys() if elem.split('/')[1] == "start"]
+    plugopt = [elem.split('/')[2] for elem in plugls.installed_plug.keys() if elem.split('/')[1] == "opt"]
+
+    if not set(plugins).symmetric_difference(set(pluglist)):
         assert 1
     else:
         assert 0
 
     if not set([plugins[0], plugins[1],
-               plugins[3]]).symmetric_difference(set(plugls.start_plug)):
+               plugins[3]]).symmetric_difference(set(plugstart)):
         assert 1
     else:
         assert 0
 
-    if not set([plugins[2]]).symmetric_difference(set(plugls.opt_plug)):
+    if not set([plugins[2]]).symmetric_difference(set(plugopt)):
         assert 1
     else:
         assert 0
