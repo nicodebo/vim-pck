@@ -1,5 +1,6 @@
 import configparser
 import os
+import pytest
 from urllib.parse import urlparse
 import subprocess
 from vim_pck import command
@@ -86,6 +87,7 @@ class Test_Install_cmd:
         else:
             assert 0
 
+    @pytest.mark.skip(reason="to be reimplemented")
     def test_4(self, write_conf_3, temp_dir):
         """Test vim_pck.command.install_cmd()
 
@@ -102,7 +104,9 @@ class Test_Install_cmd:
         pack_path = config['DEFAULT']['pack_path']
 
         command.install_cmd()
+
         plugls = utils.PluginList(pack_path)
+
         goodplugin = ["vim-commentary", "vim-dispatch", "vim-colors-solarized"]
 
         if not set(goodplugin).symmetric_difference(set(plugls.installed_plug.keys())):

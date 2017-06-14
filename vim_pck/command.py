@@ -21,12 +21,6 @@ def install_cmd():
 
     vimpckrc = utils.ConfigFile()
     plugfilt = utils.UrlFilter()
-
-    try:
-        os.makedirs(vimpckrc.pack_path)
-    except OSError:
-        pass
-
     pluglist = utils.PluginList(vimpckrc.pack_path)
     vimpckrc.getplugurls()
     vimpckrc.tagplugentries()
@@ -37,7 +31,6 @@ def install_cmd():
         print('no plugin to install !')
     else:
         ansi_tran = ansi.Parser()
-        # print(ansi.Colors16.White.enclose(':: Installing plugins...'))
         title = "<bold>:: Installing plugins...<reset>"
         print(ansi_tran.sub(title))
         seq = 'LOSANGE'
@@ -50,35 +43,29 @@ def install_cmd():
             local_dir = os.path.join(vimpckrc.pack_path,
                                      vimpckrc.config[remote_url]['package'],
                                      vimpckrc.config[remote_url]['type'])
-            try:
-                os.makedirs(local_dir)
-            except OSError:
-                pass
-            #TODO: make a wrapper function for directory creation or integrate
-            # it into the git.Clone class
+            os.makedirs(local_dir, exist_ok=True)
             tmp_cloner = git.Clone(remote_url, local_dir)
             a_spinner.start()
             out = tmp_cloner.git_cmd()
             a_spinner.stop()
             if out == 0:
-                # status = ansi.Colors16.green.enclose("Done ✓")
-                # status = "{}: {}".format(info, status)
                 status = "{}: <green>Done ✓<reset>".format(info)
                 status = status.rjust(len(status) + offset, pad)
                 status = ansi_tran.sub(status)
                 print(status)
             else:
-                # status = ansi.Colors16.red.enclose("Fail ✗")
                 status = "{}: <red>Fail ✗<reset>".format(info)
                 status = status.rjust(len(status) + offset, pad)
                 status = ansi_tran.sub(status)
                 print(status)
                 err_status = tmp_cloner.error_proc.stderr.decode('UTF-8')
+                # TODO: duplicate the retrieve_stdout method, merge them
                 err_status = err_status.rjust(len(err_status) + offset + 2,
                                               pad)
                 print(err_status)
             del a_spinner
             del tmp_cloner
+
 
 def ls_cmd(**kwargs):
     """list function. This function is launched when the ``vimpck ls``
@@ -186,3 +173,8 @@ def upgrade_cmd(**kwargs):
                 print("\nplug name: {}".format(elem[0]))
                 c = subprocess.run(["git", "--no-pager", "-C", elem[1], "log", "--graph", "--oneline", "--decorate", "{0}..{1}".format(elem[2], elem[3])], stderr=subprocess.PIPE, stdout=subprocess.PIPE, check=True)
                 print(c.stdout.decode('UTF-8'))
+
+# TODO: spinner class, stop the spinner thread when deleting the object.
+# __del__ method
+# TODO: put constant in a separate module constant.py
+
