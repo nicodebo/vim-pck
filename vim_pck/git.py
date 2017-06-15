@@ -167,6 +167,23 @@ class IsGitWorkTree(Git):
         return out
 
 
+class GetRemote(Git):
+    """git config --get remote.origin.url
+
+    Check if a directory is git repository
+    """
+
+    def __init__(self, local_dir):
+        super().__init__(local_dir)
+
+    def git_cmd(self):
+        """launch command"""
+        cmd = ["git", "-C", self.local_dir,
+               "config", "--get", "remote.origin.url"]
+        out, self.compl_proc, self.error_proc = ex_subprocess(cmd)
+        return out
+
+
 # Quick testing
 if __name__ == "__main__":
 
@@ -201,4 +218,10 @@ if __name__ == "__main__":
 
     git_wt_obj2 = IsGitWorkTree('/tmp')
     git_test(":: Test IsGitWorkTree, is a git repo: False...", git_wt_obj2)
+
+    git_rem_obj = GetRemote('/tmp')
+    git_test(":: Test GetRemote, inside a git repo...", git_rem_obj)
+
+    git_rem_obj2 = GetRemote('/tmp/vim-pck')
+    git_test(":: Test GetRemote, outside a git repo: True...", git_rem_obj2)
 
