@@ -170,58 +170,36 @@ class IsGitWorkTree(Git):
 # Quick testing
 if __name__ == "__main__":
 
-    print(":: Test Clone...")
-    test = Clone('https://github.com/nicodebo/vim-pck', '/tmp')
-    if test.git_cmd() == 1:
-        print('not ok')
-        print(test.error_proc)
-    else:
-        print('ok')
-        print(test.retrieve_stdout())
+    def git_test(test_desc, git_inst):
+        print(test_desc)
+        out = git_inst.git_cmd()
+        if out == 1:
+            print('not ok')
+            print(git_inst.error_proc)
+        else:
+            print('ok')
+            print(git_inst.retrieve_stdout())
+        print('\n')
+        return out
 
-    print(":: Test Pull...")
-    test2 = Pull('/tmp/vim-pck')
-    if test2.git_cmd() == 1:
-        print('not ok')
-        print(test2.error_proc)
-    else:
-        print('ok')
-        print(test2.retrieve_stdout())
+    clone_obj = Clone('https://github.com/nicodebo/vim-pck', '/tmp')
+    git_test(":: Test Clone...", clone_obj)
 
-    print(":: Test RevList...")
-    test3 = RevList('/tmp/vim-pck')
-    if test3.git_cmd() == 1:
-        print('not ok')
-        print(test3.error_proc)
-    else:
-        print('ok')
-        print(test3.retrieve_stdout())
+    pull_obj = Pull('/tmp/vim-pck')
+    git_test(":: Test Pull...", pull_obj)
 
-    print(":: Test Log...")
-    test4 = Log('/tmp/vim-pck', '4b6a95fe14a08fd9bae7930e2cea1a1081509ee7',
-                'a46335e7982f8ff418c2449df4892e61d024137b')
-    if test4.git_cmd() == 1:
-        print('not ok')
-        print(test4.error_proc)
-    else:
-        print('ok')
-        print(test4.retrieve_stdout())
+    revlist_obj = RevList('/tmp/vim-pck')
+    git_test(":: Test RevList...", revlist_obj)
 
-    print(":: Test IsGitWorkTree, is a git repo: True...")
-    test5 = IsGitWorkTree('/tmp/vim-pck')
-    if test5.git_cmd() == 1:
-        print('not ok')
-        print(test4.error_proc)
-    else:
-        print('ok')
-        print(test4.retrieve_stdout())
+    log_obj = Log('/tmp/vim-pck', '4b6a95fe14a08fd9bae7930e2cea1a1081509ee7',
+                  'a46335e7982f8ff418c2449df4892e61d024137b')
+    git_test(":: Test Log...", log_obj)
 
-    print(":: Test IsGitWorkTree, is a git repo: False...")
-    test6 = IsGitWorkTree('/tmp')
-    if test6.git_cmd() == 1:
-        print('not ok')
-        print(test4.error_proc)
-    else:
-        print('ok')
-        print(test4.retrieve_stdout())
+    git_wt_obj = IsGitWorkTree('/tmp/vim-pck')
+    git_test(":: Test IsGitWorkTree, is a git repo: True...", git_wt_obj)
+
+    git_wt_obj2 = IsGitWorkTree('/tmp')
+    git_test(":: Test IsGitWorkTree, is a git repo: False...", git_wt_obj2)
+
+# TODO: Change the name of Log and RevList
 
