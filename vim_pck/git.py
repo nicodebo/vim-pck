@@ -109,8 +109,8 @@ class Pull(Git):
         return out
 
 
-class RevList(Git):
-    """git rev-list command
+class Hash(Git):
+    """git rev-list -1 HEAD
 
     Retrieve the current hash of the working tree in a local git repository
     """
@@ -126,8 +126,8 @@ class RevList(Git):
         return out
 
 
-class Log(Git):
-    """git log command
+class HistRange(Git):
+    """git log <sha(i)>..<sha2(i+n)>
 
     Return the commit history between 2 hashes
     """
@@ -188,18 +188,17 @@ if __name__ == "__main__":
     pull_obj = Pull('/tmp/vim-pck')
     git_test(":: Test Pull...", pull_obj)
 
-    revlist_obj = RevList('/tmp/vim-pck')
-    git_test(":: Test RevList...", revlist_obj)
+    revlist_obj = Hash('/tmp/vim-pck')
+    git_test(":: Test Hash...", revlist_obj)
 
-    log_obj = Log('/tmp/vim-pck', '4b6a95fe14a08fd9bae7930e2cea1a1081509ee7',
-                  'a46335e7982f8ff418c2449df4892e61d024137b')
-    git_test(":: Test Log...", log_obj)
+    log_obj = HistRange('/tmp/vim-pck',
+                        '4b6a95fe14a08fd9bae7930e2cea1a1081509ee7',
+                        'a46335e7982f8ff418c2449df4892e61d024137b')
+    git_test(":: Test HistRange...", log_obj)
 
     git_wt_obj = IsGitWorkTree('/tmp/vim-pck')
     git_test(":: Test IsGitWorkTree, is a git repo: True...", git_wt_obj)
 
     git_wt_obj2 = IsGitWorkTree('/tmp')
     git_test(":: Test IsGitWorkTree, is a git repo: False...", git_wt_obj2)
-
-# TODO: Change the name of Log and RevList
 
