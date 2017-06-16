@@ -5,6 +5,25 @@
 """
 
 import subprocess
+import re
+import os
+
+
+def humanish(remote_url):
+    """Get the humanish part of a remote git url
+
+    equivalent of the following multiexpression sed search and replace:
+        sed -e 's|/$||' -e 's|:*/*\.git$||' -e 's|.*[/:]||g'
+
+    https://stackoverflow.com/questions/13839879/how-to-determine-the-humanish-part-of-a-git-repository#13840631
+    see man git-clone
+    """
+
+    result = remote_url
+    regexes = [r"/$", r":*/*\.git$", r".*[/:]"]
+    for regex in regexes:
+        result = re.sub(regex, "", result)
+    return result
 
 
 def ex_subprocess(cmd):
@@ -42,7 +61,8 @@ class Git:
 
     Attributs:
         - remote_url (str):  ex, https://github.com/nicodebo/vimpck
-        - local_dir (str): local dir of the copy of the remote repository
+        - local_dir (str): local root directory of the copy of the remote
+            repository
         - compl_proc (subprocess.CompletedProcess instance): return value
           of the subprocess when it has succeeded
         - error_proc (subprocess.CalledProcessError instance): value of the
@@ -72,28 +92,40 @@ class Git:
 class Clone(Git):
     """git clone command
 
-    Retrieve remote repository
+    Download remote repository
+
+    Attributs:
+            - root_dir (str): directory to clone into
     """
 
-    def __init__(self, remote_url, local_dir):
-        super().__init__(local_dir)
+    def __init__(self, remote_url, root_dir):
+        tmp_path = os.path.join(root_dir, humanish(remote_url))
+        super().__init__(tmp_path)
         self.remote_url = remote_url
+        self.cmd_sub = [InitSubmodule(tmp_path)]  # object container
+        self.root_dir = root_dir
 
     def git_cmd(self):
         """launch git clone command"""
 
-        cmd = ["git", "-C", self.local_dir, "clone", self.remote_url]
-        # TODO: check if .gitmodules is present. If it is launch the command
-        # that init all submodules
+        cmd = ["git", "clone", self.remote_url, self.local_dir]
         out, self.compl_proc, self.error_proc = ex_subprocess(cmd)
+
+        git_mod_path = os.path.join(self.local_dir, ".gitmodules")
+
+        if os.path.isfile(git_mod_path) & (out == 0):
+            out = self.cmd_sub[0].git_cmd()
+            self.compl_proc = self.cmd_sub[0].compl_proc
+            self.error_proc = self.cmd_sub[0].error_proc
         return out
 
 
 class Pull(Git):
-    """git pull command"""
+    """git pull"""
 
     def __init__(self, local_dir):
         super().__init__(local_dir)
+        self.cmd_sub = [UpdateSubmodule(local_dir)]  # object container
 
     def git_cmd(self):
         """launch git pull command
@@ -102,10 +134,13 @@ class Pull(Git):
         """
 
         cmd = ["git", "-C", self.local_dir, "pull"]
-        # TODO: see if this command also pull the submodule. No it does not.
-        # For repo that has submodule, git submodule update --recursive need to
-        # be called
         out, self.compl_proc, self.error_proc = ex_subprocess(cmd)
+
+        git_mod_path = os.path.join(self.local_dir, ".gitmodules")
+        if os.path.isfile(git_mod_path) & (out == 0):
+            out = self.cmd_sub[0].git_cmd()
+            self.compl_proc = self.cmd_sub[0].compl_proc
+            self.error_proc = self.cmd_sub[0].error_proc
         return out
 
 
@@ -184,6 +219,44 @@ class GetRemote(Git):
         return out
 
 
+class InitSubmodule(Git):
+    """git submodule update --init --recursive
+
+    install submodule in a already cloned repository
+    """
+
+    def __init__(self, local_dir):
+        super().__init__(local_dir)
+
+    def git_cmd(self):
+        """launch command
+        """
+
+        cmd = ["git", "-C", self.local_dir, "submodule", "update", "--init",
+               "--recursive"]
+        out, self.compl_proc, self.error_proc = ex_subprocess(cmd)
+        return out
+
+
+class UpdateSubmodule(Git):
+    """git submodule update --recursive
+
+    update submodule in a already cloned repository
+    """
+
+    def __init__(self, local_dir):
+        super().__init__(local_dir)
+
+    def git_cmd(self):
+        """launch command
+        """
+
+        cmd = ["git", "-C", self.local_dir, "submodule", "update",
+               "--recursive"]
+        out, self.compl_proc, self.error_proc = ex_subprocess(cmd)
+        return out
+
+
 # Quick testing
 if __name__ == "__main__":
 
@@ -202,8 +275,14 @@ if __name__ == "__main__":
     clone_obj = Clone('https://github.com/nicodebo/vim-pck', '/tmp')
     git_test(":: Test Clone...", clone_obj)
 
+    clone_obj2 = Clone('https://github.com/hkupty/iron.nvim', '/tmp')
+    git_test(":: Test Clone with submodules...", clone_obj2)
+
     pull_obj = Pull('/tmp/vim-pck')
-    git_test(":: Test Pull...", pull_obj)
+    git_test(":: Test Pull without submodules...", pull_obj)
+
+    pull_obj2 = Pull('/tmp/iron.nvim')
+    git_test(":: Test Pull with submodule...", pull_obj2)
 
     revlist_obj = Hash('/tmp/vim-pck')
     git_test(":: Test Hash...", revlist_obj)
@@ -224,4 +303,27 @@ if __name__ == "__main__":
 
     git_rem_obj2 = GetRemote('/tmp/vim-pck')
     git_test(":: Test GetRemote, outside a git repo: True...", git_rem_obj2)
+
+    # test humanish
+
+    remote_url = ["ssh://user@host.xz:port/path/to/repo.git/"
+                  "git://host.xz:port/path/to/repo.git/",
+                  "https://host.xz:port/path/to/repo.git/",
+                  "ftps://host.xz:port/path/to/repo.git/",
+                  "user@host.xz:path/to/repo.git/",
+                  "ssh://user@host.xz:port/~user/path/to/repo.git/",
+                  "git://host.xz:port/~user/path/to/repo.git/",
+                  "user@host.xz:/~user/path/to/repo.git/",
+                  "/path/to/repo.git/",
+                  "file:///path/to/repo.git/"]
+
+    for elem in remote_url:
+        if humanish(elem) == "repo":
+            print("ok")
+            assert 1
+        else:
+            print("not ok")
+            assert 0
+
+# TODO: put all these hereabove tests under pytest
 
