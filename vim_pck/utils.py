@@ -1,9 +1,8 @@
 import configparser
-from itertools import compress
 import os
 import sys
 from urllib.parse import urlparse
-from posixpath import basename
+from vim_pck.git import GetRemote
 
 
 class ConfigFile:
@@ -76,21 +75,29 @@ class ConfigFile:
                 self.nonfreeze_urls.append(url)
 
 
-class PluginList:
-    """This class define the list of plugin from which we can filter by
-    opt/autostart. The list of plugins is directly read from the disk inside
-    the pack path"""
+class DiskPlugin:
+    """This class allow to access the plugins locally installed on the pack
+    path.
+
+    Attributs:
+            - all_plug (dict): key = <package_name>/{start|opt}/<plugin_name>
+                               value = remote_url, ex: https://path/to/repo
+            - pack_path (str): package directory
+    """
 
     def __init__(self, pack_path):
-        self.installed_plug = {}
-        self.start_plug = []
-        self.opt_plug = []
+        self.all_plug = {}
         self.pack_path = pack_path
-        self.instplug()
+        self.git_config = [GetRemote("")]  # object container
+        # Local path is not currently known so initilized at en empty string
+        self._list_remote_url(self._list_plug_dir())
 
-    # http://stackoverflow.com/questions/229186/os-walk-without-digging-into-directories-below
-    # TODO: move it outside of the class or make it a staticmethod
-    def walklevel(self, some_dir, level=1):
+    @staticmethod
+    def _walklevel(some_dir, level):
+        """
+        Get a list of directories at a specified level from <some_dir>
+        http://stackoverflow.com/questions/229186/os-walk-without-digging-into-directories-below
+        """
         some_dir = some_dir.rstrip(os.path.sep)
         assert os.path.isdir(some_dir)
         num_sep = some_dir.count(os.path.sep)
@@ -100,121 +107,65 @@ class PluginList:
             if num_sep + level <= num_sep_this:
                 del dirs[:]
 
-    def instplug(self, level=3):
-        """ Return the list of installed plugin
-
-        Arg:
-            pack_path (str) : path of the neo(vim) builtin package directory
-
-        Return:
-            installed_plug (dictionnary) : key/value = plugin_name/{start/opt}
-        """
-        installed_plug_dir = []
-        dirlen = []  # store length of the path (how deep they are)
-        self.installed_plug = {}
-
-        for dirpath, dirnames, filenames in self.walklevel(self.pack_path, level):
-            installed_plug_dir.append(dirpath)
-        # find deepest paths
+    def _list_plug_dir(self, level=3):
+        """Get the list of installed plugins with there respective remote url
         # http://stackoverflow.com/questions/3167154/how-to-split-a-dos-path-into-its-components-in-python
-        for plug in installed_plug_dir:
-            plug = os.path.normpath(plug)
-            dirlen.append(len(plug.split(os.sep)))
-        # keep only deepest path
-        fil = [(i - j) == 0 for i, j in zip([max(dirlen)] * len(dirlen), dirlen)]
-        installed_plug_dir = list(compress(installed_plug_dir, fil))
+        """
 
-        # keep only the 3 last path parts <package>/{<start>|<opt>}/<plugin>
-        installed_plug_dir = [os.path.relpath(elem, self.pack_path) for elem in installed_plug_dir]
+        dir_list = {}  # temp dictionary key: directory, value: depth
 
-        for plug in installed_plug_dir:
-            if "start" in plug:
-                self.installed_plug[plug] = "start"
+        # Get a complete list of directory 3 level down pack path
+        for dirpath, dirnames, filenames in self._walklevel(self.pack_path,
+                                                            level):
+            dir_list[dirpath] = 0
+
+        # compute depth of each path
+        for elem in dir_list.keys():
+            elem_norm = os.path.normpath(elem)
+            dir_list[elem] = len(elem_norm.split(os.sep))
+
+        # keep only deepest paths
+        max_depth = max(dir_list.values())
+        dir_list = {k: v for k, v in dir_list.items() if v == max_depth}
+
+        return dir_list.keys()
+
+    def _list_remote_url(self, dir_list):
+        """Get remote url of locally cloned repository
+
+        Arguments:
+                - dir_list (list(str)): list of directory
+        """
+        self.all_plug = {}
+
+        for elem in dir_list:
+            out = 1
+            self.git_config[0].local_dir = elem
+            out = self.git_config[0].git_cmd()
+            if out == 0:
+                # keep only : <package>/{<start>|<opt>}/<plugin>
+                rel_plug_path = os.path.relpath(elem, self.pack_path)
+                self.all_plug[rel_plug_path] = self.git_config[0].retrieve_stdout()
             else:
-                self.installed_plug[plug] = "opt"
+                # TODO: in case something went wrong, write it down to a log
+                pass
 
-    def autostart(self):
-        self.start_plug = []
-        for key in self.installed_plug.keys():
-            if self.installed_plug[key] == 'start':
-                self.start_plug.append(key)
+    def filt_plug(self, plug_type):
+        """Filter plugin
 
-    def optional(self):
-        self.opt_plug = []
-        for key in self.installed_plug.keys():
-            if self.installed_plug[key] == 'opt':
-                self.opt_plug.append(key)
-    # TODO: either make a more robust --start and --opt (only the middle member
-    # of the path has to be checked for start or opt,  or drop those option and
-    # let the user use grep (i.e. vimpck ls | grep "pattern")
+        plug_type either start or opt
+        """
+        plug = []
+        for key in self.all_plug.keys():
+            if key.split('/')[1] == plug_type:
+                plug.append(key)
+        return plug
 
     # TODO: Add an option to allow colorizing the output of the list command.
     # Maybe one color for each part of the path
 
-    # TODO: All the test are broken because they rely on this class :S, make
-    # something more robust
-
     # TODO: Add the number of plugin listed at the top like the ll command
     # show the size.
-
-
-class UrlFilter:
-    """ This class provide different urls plugins filter
-    """
-
-    def __init__(self):
-        self.toinstall_plug = []
-        self.toupgrade_plug = []
-
-    def install(self, plugurlconf, plug_pack_path):
-        """ Filter the list of plugin to be installed
-
-        Arg:
-            plugurlconf (str list): list of valid plugins url from the vimpckrc
-            configuration file.
-            plug_pack_path (str list): list of plugins installed on the disk on
-            the pack_path
-
-        The plugins to be installed are : (plugins from the configuration file)
-        minus (plugins from the pack_path) meaning that only the plugins from
-        the configuration file that are not present on the pack path of neovim
-        are returned by this method. """
-
-        self.toinstall_plug = []
-        for plug_url in plugurlconf:
-            if not any(os.path.basename(urlparse(plug_url).path)
-                       in s for s in plug_pack_path):
-                self.toinstall_plug.append(plug_url)
-        # TODO: check if pack path exists / not empty ?
-
-    def upgrade(self, nonfreezedurl, plug_pack_path, pluglist):
-        """ Filter the list of plugin to be upgraded
-
-        Arg:
-            nonfreezedurl (str list): list of valid plugins url from the
-            vimpckrc configuration file that are not freezed
-            plug_pack_path (str): the package path
-            pluglist (str list): list of plugins to be updated, if empty update
-            all plugins
-
-        The plugins to be upgraded are : The plugins that the user want to
-        upgrade. The plugins that are present on the
-        pack_path which have a valid URL minus filtered by the plugin the user
-        wants to upgrade
-        """
-        self.toupgrade_plug = []
-        if os.path.isdir(plug_pack_path):
-            if not pluglist:
-                self.toupgrade_plug = self.toupgrade_plug + nonfreezedurl
-            else:
-                for url in nonfreezedurl:
-                    base = basename(urlparse(url).path)
-                    if any(base in s for s in pluglist):
-                        self.toupgrade_plug.append(url)
-        else:
-            raise NotADirectoryError("The package path does not exists !")
-        # TODO: This exception should be raised in the ConfigFile class. It
-        # doesn't make sence to raise it here.
 
 # TODO: replace os.path.basename par posixpath.basename:
 # http://stackoverflow.com/questions/449775/how-can-i-split-a-url-string-up-into-separate-parts-in-python
