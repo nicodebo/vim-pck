@@ -2,8 +2,12 @@
 
 [![Build Status](https://travis-ci.org/nicodebo/vim-pck.svg?branch=master)](https://travis-ci.org/nicodebo/vim-pck)
 
-A command line tool to manage my vim plugin using the built-in package
+A command-line tool to manage my vim plugins using the built-in package
 feature of vim8. (see :help packages)
+
+![install_command](screenshot/install.jpg)
+![list_command](screenshot/ls.jpg)
+![upgrade_command](screenshot/upgrade.jpg)
 
 ## Dependencies
 
@@ -41,6 +45,9 @@ To uninstall:
 
 ### Configuration file
 
+The main configuration file where the vim packages are
+specified. It's default location follow the [XDG specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html) that is `$XDG_HOME_CONFIG/vimpck/config` or `~/.config/vimpck/config` if `XDG_HOME_CONFIG` is not set.
+
 ```dosini
 ; example vimpck configuration file
 [DEFAULT]
@@ -66,21 +73,24 @@ package = colors
 type = start
 ```
 
+Then run `vimpck install` to clone each remote repository in the correct
+package location. For exemple, `vim-commentary` -->
+`~/.vim/pack/common/start/vim-commentary`
+
+For neovim the package path should be set to `~/.local/share/nvim/site/pack`
+
 ### Usage
 
-To use it:
+To use it (see `vimpck --help`):
 
 * `$ vimpck install` : install plugins from the configuration file
 * `$ vimpck ls` : list all plugins
 * `$ vimpck ls --start` : list plugins that are automatically loaded
 * `$ vimpck ls --opt` : list plugins that have to be loaded manually
 * `$ vimpck update` : update all plugins that are not freezed
-* `$ vimpck update <plug1>...` : only update <plug1>
+* `$ vimpck update <plug1>...` : only update `<plug1>` plugin. The plugin have
+  to be specified using the following pattern `package/type/plugin`
 
-### File
-
-* `config` : The main configuration file where the vim packages are
-  specified. It's default location follow the [XDG specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html) that is `$XDG_HOME_CONFIG/vimpck/config` or `~/.config/vimpck/config` if `XDG_HOME_CONFIG` is not set.
 
 ### Environement variable
 
@@ -120,6 +130,7 @@ compinit
 - [ ] vimpck clean, remove commented out/location changed plugins
 - [ ] find a better way to update vimpck. (pypi repo ?)
 - [ ] Add post install hooks, (ex: generate documentation)
+- [ ] Add a flag to upgrade cmd, to upgrade by package
 
 ## Related projects
 
