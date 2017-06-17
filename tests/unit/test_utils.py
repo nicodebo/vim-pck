@@ -1,6 +1,6 @@
 import configparser
 import os
-import pytest
+import subprocess
 
 from vim_pck import utils
 
@@ -80,164 +80,43 @@ class Test_ConfigFile():
             assert 0
 
 
-def test_PluginList(temp_dir):
-    """Test the PluginList class
+class Test_DiskPlugin():
+    """Test the DiskPlugin class"""
 
-    Simulate the installation of plugin by creating 4 folder, then compare the
-    effectively installed plugin with the retrieved plugin from the instplug
-    method. They should be equal.
-    Also test
-    """
-    dirtest = 'PluginList'
-    bsdir = str(temp_dir.mktemp(dirtest))
-    plugins = ['vim-colors-solarized', 'vim-mustache-handlebars',
-               'vim-dispatch', 'vim-commentary']
-
-    os.makedirs(os.path.join(bsdir, 'colors', 'start', plugins[0]))
-    os.makedirs(os.path.join(bsdir, 'filetype', 'start', plugins[1]))
-    os.makedirs(os.path.join(bsdir, 'common', 'opt', plugins[2]))
-    os.makedirs(os.path.join(bsdir, 'common', 'start', plugins[3]))
-
-    plugls = utils.PluginList(bsdir)
-    plugls.autostart()
-    plugls.optional()
-
-    pluglist = [elem.split('/')[2] for elem in plugls.installed_plug.keys()]
-    plugstart = [elem.split('/')[2] for elem in plugls.installed_plug.keys() if elem.split('/')[1] == "start"]
-    plugopt = [elem.split('/')[2] for elem in plugls.installed_plug.keys() if elem.split('/')[1] == "opt"]
-
-    if not set(plugins).symmetric_difference(set(pluglist)):
-        assert 1
-    else:
-        assert 0
-
-    if not set([plugins[0], plugins[1],
-               plugins[3]]).symmetric_difference(set(plugstart)):
-        assert 1
-    else:
-        assert 0
-
-    if not set([plugins[2]]).symmetric_difference(set(plugopt)):
-        assert 1
-    else:
-        assert 0
-
-
-class Test_UrlFilter:
-    """ Test the UrlFilter class
-    """
-
-    def test_first_install(self, temp_dir, write_conf_1):
-        """ scenario_1: Test with a correct configuration file, this is the
-        first time installation
+    def test_install_4_fake_plugin_no_problem(self, temp_dir):
         """
-        vimpckrc = utils.ConfigFile()
-        vimpckrc.getplugurls()
-        vimpckrc.tagplugentries()
-        plugls = utils.PluginList(vimpckrc.pack_path)
-        plugfilt = utils.UrlFilter()
-        plugfilt.install(vimpckrc.valid_plug_entries, plugls.installed_plug.keys())
+        Simulate installing 4 plugins by creating 4 git folder and assigning
+        them a fake remote url.
+        Then use the DiskPlugin to get the dictionary of plugin and make a
+        comparison between what has been installed and what is retrieve
+        """
+        bsdir = str(temp_dir.mktemp("test_DiskPlugin_class"))
+        print(bsdir)
+        plugins = {'colors/start/vim-colors-solarized': 'fake_url1',
+                   'filetype/opt/vim-mustache-handlebars': 'fake_url2',
+                   'filetype/start/vim-dispatch': 'fake_url3',
+                   'common/start/vim-commentary': 'fake_url4'}
 
-        if not set(vimpckrc.valid_plug_entries).symmetric_difference(set(plugfilt.toinstall_plug)):
+        for key in plugins:
+            local_dir = os.path.join(bsdir, key)
+            os.makedirs(local_dir)
+            cmd = ["git", "-C", local_dir, "init"]
+            subprocess.run(cmd, stdout=subprocess.PIPE,
+                           stderr=subprocess.PIPE, check=True)
+            cmd = ["git", "-C", local_dir, "remote", "add", "origin",
+                   plugins[key]]
+            subprocess.run(cmd, stdout=subprocess.PIPE,
+                           stderr=subprocess.PIPE, check=True)
+
+        plugls = utils.DiskPlugin(bsdir)
+        print(plugls.all_plug)
+
+        if not set(plugls.all_plug.keys()).symmetric_difference(set(plugins.keys())):
             assert 1
         else:
             assert 0
 
-    def test_second_install(self, temp_dir, write_conf_2):
-        """ Test with a valid configuration file, vim-commentary has already
-        been installed, thus Urlfilt should return the entire list of plugin
-        except vim-commentary
-        """
-        vimpckrc = utils.ConfigFile()
-        vimpckrc.getplugurls()
-        vimpckrc.tagplugentries()
-        plugls = utils.PluginList(vimpckrc.pack_path)
-        plugfilt = utils.UrlFilter()
-        plugfilt.install(vimpckrc.valid_plug_entries, plugls.installed_plug.keys())
-
-        if not set(vimpckrc.valid_plug_entries).symmetric_difference(set(plugfilt.toinstall_plug)):
-            assert 1
-        else:
-            assert 0
-
-        os.makedirs(os.path.join(vimpckrc.pack_path, 'colors', 'start', 'vim-commentary'))
-        plugls = utils.PluginList(vimpckrc.pack_path)
-        old_value = plugfilt.toinstall_plug
-        plugfilt.install(vimpckrc.valid_plug_entries, plugls.installed_plug.keys())
-        diff = set(old_value).difference(set(plugfilt.toinstall_plug))
-        if ('vim-commentary' in str(diff)) and (len(diff) == 1):
-            assert 1
-        else:
-            assert 0
-
-    def test_upgrade_no_pack_path(self, temp_dir, write_conf_1):
-        """ In this scenario, we try to upgrade all plugins while the pack
-        path does not exist """
-
-        vimpckrc = utils.ConfigFile()
-        vimpckrc.getplugurls()
-        plugfilt = utils.UrlFilter()
-        with pytest.raises(NotADirectoryError) as excinfo:
-            plugfilt.upgrade(vimpckrc.nonfreeze_urls,
-                             os.path.join(vimpckrc.pack_path,
-                                          "non_existent_pack_path"), [])
-
-    def test_upgrade_all_plugin_1(self, write_conf_1):
-        """ upgrade all plugin + 0 freezed plugins in the configuration file
-        """
-
-        vimpckrc = utils.ConfigFile()
-        vimpckrc.getplugurls()
-        vimpckrc.tagplugentries()
-        vimpckrc.nonfreezedurl()
-        plugfilt = utils.UrlFilter()
-        pluglist = []
-        plugfilt.upgrade(vimpckrc.nonfreeze_urls, vimpckrc.pack_path, pluglist)
-
-        if not set(vimpckrc.nonfreeze_urls).symmetric_difference(set(plugfilt.toupgrade_plug)):
-            assert 1
-        else:
-            assert 0
-
-    def test_upgrade_all_plugin_2(self, write_conf_4):
-        """ upgrade all plugin + 1 freezed plugins in the configuration file
-        """
-
-        vimpckrc = utils.ConfigFile()
-        vimpckrc.getplugurls()
-        vimpckrc.tagplugentries()
-        vimpckrc.nonfreezedurl()
-        plugfilt = utils.UrlFilter()
-        pluglist = []
-        plugfilt.upgrade(vimpckrc.nonfreeze_urls, vimpckrc.pack_path, pluglist)
-
-        config = configparser.ConfigParser()
-        config.read(os.environ["VIMPCKRC"])
-        plug_urls = [sect for sect in config.sections() if sect != 'DEFAULT']
-
-        diff = set(plug_urls).symmetric_difference(set(plugfilt.toupgrade_plug))
-
-        if ('vim-commentary' in str(diff)) and (len(diff) == 1):
-            assert 1
-        else:
-            assert 0
-
-    def test_upgrade_3_plugin_1(self, write_conf_1):
-        """ upgrade 3 plugin + 0 freezed plugins in the configuration file
-        """
-
-        vimpckrc = utils.ConfigFile()
-        vimpckrc.getplugurls()
-        vimpckrc.tagplugentries()
-        vimpckrc.nonfreezedurl()
-        plugfilt = utils.UrlFilter()
-        pluglist = ['vim-mustache-handlebars', 'vim-dispatch',
-                    'vim-colors-solarized']
-        plugfilt.upgrade(vimpckrc.nonfreeze_urls, vimpckrc.pack_path, pluglist)
-
-        diff = set(vimpckrc.nonfreeze_urls).symmetric_difference(set(plugfilt.toupgrade_plug))
-
-        if ('vim-commentary' in str(diff)) and (len(diff) == 1):
+        if not set(plugls.all_plug.values()).symmetric_difference(set(plugins.values())):
             assert 1
         else:
             assert 0

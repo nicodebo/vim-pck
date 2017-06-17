@@ -7,6 +7,7 @@ from vim_pck import command
 from vim_pck import utils
 
 
+@pytest.mark.skip(reason="to be reimplemented")
 class Test_Install_cmd:
     """Test vim_pck.command.install_cmd()
     """
@@ -93,7 +94,6 @@ class Test_Install_cmd:
         else:
             assert 0
 
-    @pytest.mark.skip(reason="to be reimplemented")
     def test_4(self, write_conf_3, temp_dir):
         """Test vim_pck.command.install_cmd()
 
@@ -121,6 +121,7 @@ class Test_Install_cmd:
             assert 0
 
 
+@pytest.mark.skip(reason="to be reimplemented")
 def test_ls_cmd(write_conf_1, temp_dir):
     """Test vim_pck.utils.instplug()
 
@@ -172,6 +173,7 @@ def test_ls_cmd(write_conf_1, temp_dir):
         assert 0
 
 
+@pytest.mark.skip(reason="to be reimplemented")
 def test_upgrade_cmd(write_conf_1):
     """Test vim_pck.utils.upgrade_cmd()
 
