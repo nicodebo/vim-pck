@@ -3,10 +3,7 @@ stored
 """
 
 import os
-import subprocess
 import sys
-from tqdm import tqdm
-from urllib.parse import urlparse
 
 from vim_pck import utils
 from vim_pck import spinner

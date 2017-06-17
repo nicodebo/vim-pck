@@ -3,7 +3,7 @@ Another vim package manager
 """
 from setuptools import find_packages, setup
 
-dependencies = ['click', 'tqdm']
+dependencies = ['click']
 
 setup(
     name='vimpck',
@@ -46,3 +46,4 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
     ]
 )
+
