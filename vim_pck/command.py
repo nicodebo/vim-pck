@@ -61,7 +61,7 @@ def install_cmd():
                 print(status)
                 err_status = tmp_cloner.error_proc.stderr.decode('UTF-8')
                 # TODO: duplicate the retrieve_stdout method, merge them
-                err_status = err_status.rjust(len(err_status) + offset + 2,
+                err_status = err_status.rjust(len(err_status) + const.OFFSET + 2,
                                               pad)
                 print(err_status)
             del a_spinner
