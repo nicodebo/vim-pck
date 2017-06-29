@@ -10,6 +10,7 @@ from vim_pck import utils
 from vim_pck import spinner
 from vim_pck import git
 from vim_pck import ansi
+from vim_pck import const
 
 
 def install_cmd():
@@ -31,13 +32,11 @@ def install_cmd():
         ansi_tran = ansi.Parser()
         title = "<bold>:: Installing plugins...<reset>"
         print(ansi_tran.sub(title))
-        seq = 'LOSANGE'
-        interval = 0.15
-        offset = 1
         pad = ' '
         for remote_url in diff:
             info = "{}".format(remote_url)
-            a_spinner = spinner.Spinner(info, interval, seq, offset)
+            a_spinner = spinner.Spinner(info, const.INTERVAL,
+                                        const.SEQUENCE, const.OFFSET)
             local_dir = os.path.join(vimpckrc.pack_path,
                                      vimpckrc.config[remote_url]['package'],
                                      vimpckrc.config[remote_url]['type'])
@@ -52,12 +51,12 @@ def install_cmd():
             a_spinner.stop()
             if out == 0:
                 status = "✓ {}: <green>Installed<reset>".format(info)
-                status = status.rjust(len(status) + offset, pad)
+                status = status.rjust(len(status) + const.OFFSET, pad)
                 status = ansi_tran.sub(status)
                 print(status)
             else:
                 status = "✗ {}: <red>Fail<reset>".format(info)
-                status = status.rjust(len(status) + offset, pad)
+                status = status.rjust(len(status) + const.OFFSET, pad)
                 status = ansi_tran.sub(status)
                 print(status)
                 err_status = tmp_cloner.error_proc.stderr.decode('UTF-8')
@@ -120,13 +119,11 @@ def upgrade_cmd(**kwargs):
         ansi_tran = ansi.Parser()
         title = "<bold>:: Upgrading plugins...<reset>"
         print(ansi_tran.sub(title))
-        seq = 'LOSANGE'
-        interval = 0.15
-        offset = 1
         pad = ' '
         for path in plug.keys():
             info = "{}".format(plug[path])
-            a_spinner = spinner.Spinner(info, interval, seq, offset)
+            a_spinner = spinner.Spinner(info, const.INTERVAL,
+                                        const.SEQUENCE, const.OFFSET)
             local_dir = os.path.join(vimpckrc.pack_path, path)
 
             tmp_puller = git.Pull(local_dir)
@@ -144,17 +141,17 @@ def upgrade_cmd(**kwargs):
                 else:
                     message = "<green>Updated"
                 status = "✓ {}: <green>{}<reset>".format(info, message)
-                status = status.rjust(len(status) + offset, pad)
+                status = status.rjust(len(status) + const.OFFSET, pad)
                 status = ansi_tran.sub(status)
                 print(status)
             else:
                 status = "✗ {}: <red>Fail<reset>".format(info)
-                status = status.rjust(len(status) + offset, pad)
+                status = status.rjust(len(status) + const.OFFSET, pad)
                 status = ansi_tran.sub(status)
                 print(status)
                 err_status = tmp_puller.error_proc.stderr.decode('UTF-8')
                 # TODO: duplicate the retrieve_stdout method, merge them
-                err_status = err_status.rjust(len(err_status) + offset + 2,
+                err_status = err_status.rjust(len(err_status) + const.OFFSET + 2,
                                               pad)
                 print(err_status)
             del a_spinner
