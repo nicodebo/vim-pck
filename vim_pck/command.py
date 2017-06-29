@@ -38,8 +38,8 @@ def install_cmd():
             a_spinner = spinner.Spinner(info, const.INTERVAL,
                                         const.SEQUENCE, const.OFFSET)
             local_dir = os.path.join(vimpckrc.pack_path,
-                                     vimpckrc.config[remote_url]['package'],
-                                     vimpckrc.config[remote_url]['type'])
+                                     vimpckrc.config[remote_url][const.PKG_NAME],
+                                     vimpckrc.config[remote_url][const.TYPE_NAME])
             #TODO: make a try except block status (missing package or type key)
             # and don't make the check in the ConfigFile class (i.e. valid
             # plug)

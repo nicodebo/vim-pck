@@ -59,10 +59,10 @@ pack_path=~/.vim/pack
 package = common
 type = start
 freeze = True ;Don't update vim-commentary when launching vimpck upgrade
+;possible value yes/no, on/off, true/false, 1/0
 
 [https://github.com/tpope/vim-dispatch]
-package = common
-type = opt
+; default location pack_path/vimpck/start/vim-dispatch
 
 [https://github.com/mustache/vim-mustache-handlebars]
 package = filetype
@@ -78,6 +78,12 @@ package location. For exemple, `vim-commentary` -->
 `~/.vim/pack/common/start/vim-commentary`
 
 For neovim the package path should be set to `~/.local/share/nvim/site/pack`
+
+Option | default 
+--- | ---
+package | `vimpck`
+type | `start`
+freeze | `false`
 
 ### Usage
 
