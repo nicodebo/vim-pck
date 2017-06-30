@@ -21,10 +21,8 @@ def install_cmd():
     vimpckrc = utils.ConfigFile()
     os.makedirs(vimpckrc.pack_path, exist_ok=True)
     pluglist = utils.DiskPlugin(vimpckrc.pack_path)
-    vimpckrc.getplugurls()
-    vimpckrc.tagplugentries()
 
-    diff = set(vimpckrc.valid_plug_entries).symmetric_difference(set(pluglist.all_plug.values()))
+    diff = set(vimpckrc.freeze_false()).symmetric_difference(set(pluglist.all_plug.values()))
 
     if not diff:
         print('no plugin to install !')
@@ -102,13 +100,10 @@ def upgrade_cmd(**kwargs):
     """
 
     vimpckrc = utils.ConfigFile()
-    vimpckrc.getplugurls()
-    vimpckrc.tagplugentries()
-    vimpckrc.nonfreezedurl()
     os.makedirs(vimpckrc.pack_path, exist_ok=True)
     pluglist = utils.DiskPlugin(vimpckrc.pack_path)
 
-    plug = {k: v for k, v in pluglist.all_plug.items() if v in vimpckrc.nonfreeze_urls}
+    plug = {k: v for k, v in pluglist.all_plug.items() if v in vimpckrc.freeze_false()}
 
     if kwargs['plug']:
         plug = {k: v for k, v in pluglist.all_plug.items() if k in kwargs['plug']}

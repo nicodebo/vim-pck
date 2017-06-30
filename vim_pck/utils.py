@@ -1,27 +1,27 @@
 import configparser
 import os
 import sys
-from urllib.parse import urlparse
+import itertools
+
 from vim_pck.git import GetRemote
+from vim_pck import const
 
 
 class ConfigFile:
     """This class define the configuration file and method that allows to
     manipulate it"""
-    # TODO: Refactoring Idea: Would it be possible to make a class that inherit
-    # from configparser.ConfigParser() class ?
 
     def __init__(self):
         self.config = configparser.ConfigParser()
-        self.conf_path = ""
+        self.conf_path = ""  # path to the configuration file
         self.pack_path = ""
-        self.plugurls = []  # list of all url section
-        self.valid_plug_entries = []  # list of url which entries are valid
-        self.nonfreeze_urls = []  # list of url which are valid and non freezed
-        self.readconf()
-        self.getpackpath()
+        self.rem_urls = []  # list of remote url section
+        self._readconf()
+        self._get_remote_urls()
+        self._get_pack_path()
+        self._sanitize_conf()
 
-    def readconf(self):
+    def _readconf(self):
         # Read vimpck configuration file
         try:
             self.conf_path = os.environ['VIMPCKRC']
@@ -35,44 +35,33 @@ class ConfigFile:
             else:
                 sys.exit("No configuration file found!")
 
-    def getpackpath(self):
+    def _get_pack_path(self):
         self.pack_path = os.path.expanduser(self.config['DEFAULT']['pack_path'])
 
-    def getplugurls(self):
-        self.plugurls = [sect for sect in self.config.sections() if sect != 'DEFAULT']
+    def _get_remote_urls(self):
+        self.rem_urls = [sect for sect in self.config.sections() if sect != 'DEFAULT']
 
-    def tagplugentries(self):
-        """add a key/value pair, plug_locrepo, to self.config
-        plug_locrepo = '', for invalid entries
-        plug_locrepo = plugurl, for valid entries
-        An invalid plug entries is one with package or type key missing"""
+    def _sanitize_conf(self):
+        """Add default values for the different keys (package, type, freeze) if
+        they are not define by the user"""
+        default_val = {const.PKG_NAME: const.PACKAGE,
+                       const.TYPE_NAME: const.TYPE,
+                       const.FRZ_NAME: const.FREEZE}
+        for url, key in itertools.product(self.rem_urls, default_val.keys()):
+            if not self.config.has_option(url, key):
+                self.config[url][key] = str(default_val[key])
 
-        # get valid entries (plug_locrepo != '')
-        for plug_url in self.plugurls:
-            plug_name = os.path.basename(urlparse(plug_url).path)
-            try:
-                os.path.join(self.pack_path, self.config[plug_url]['package'],
-                             self.config[plug_url]['type'], plug_name)
-            except KeyError:
-                pass
-            else:
-                self.valid_plug_entries.append(plug_url)
+    def freeze_false(self):
+        """Get the list of sections which freeze option is false
 
-    def nonfreezedurl(self):
-        """ Get the list of plugins url that are not marked as freezed"""
-        self.nonfreeze_urls = []
-        freeze = False
-        for url in self.valid_plug_entries:
-            freeze = False
-            try:
-                freeze_val = self.config[url]['freeze']
-            except KeyError:
-                pass
-            else:
-                if freeze_val.lower() == 'yes' or freeze_val.lower() == 'true':
-                    freeze = True
-            if not freeze:
-                self.nonfreeze_urls.append(url)
+        The sanitize_conf function must have been called before to ensure that
+        a freeze option is available
+        """
+        url_filt = []
+        for rem_url in self.rem_urls:
+            if not self.config.getboolean(rem_url, const.FRZ_NAME):
+               url_filt.append(rem_url)
+        return url_filt
 
 
 class DiskPlugin:
@@ -169,4 +158,3 @@ class DiskPlugin:
 
 # TODO: replace os.path.basename par posixpath.basename:
 # http://stackoverflow.com/questions/449775/how-can-i-split-a-url-string-up-into-separate-parts-in-python
-

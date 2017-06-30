@@ -8,7 +8,7 @@ FRZ_NAME = "freeze"
 
 PACKAGE = "vimpck"
 TYPE = "start"
-FREEZE = False
+FREEZE = 0  # false
 
 # spinner.py constant
 INTERVAL = 0.10
