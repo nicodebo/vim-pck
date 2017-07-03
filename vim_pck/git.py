@@ -26,6 +26,27 @@ def humanish(remote_url):
     return result
 
 
+def parse_gitmodule(path):
+    """Parse the .gitmodules file and return the relative path of submodule
+
+    Arguments:
+            - path (str): path of the local repository
+
+    return:
+            rel_path_subm (list(str)): list of submodules paths
+    """
+    rel_path_subm = []
+    regex = r"^path = "
+    with open(os.path.join(path, ".gitmodules")) as f:
+        for line in f:
+            line = line.strip()
+            match = re.search(regex, line)
+            if match:
+                rel_path_subm.append(re.sub(regex, '', line))
+    rel_path_subm = [os.path.join(path, elem) for elem in rel_path_subm]
+    return rel_path_subm
+
+
 def ex_subprocess(cmd):
     """subprocess wrapper function
 
@@ -325,5 +346,7 @@ if __name__ == "__main__":
             print("not ok")
             assert 0
 
-# TODO: put all these hereabove tests under pytest
+    # test parse_gitmodule
+    print(parse_gitmodule(clone_obj2.local_dir))
 
+# TODO: put all these hereabove tests under pytest
