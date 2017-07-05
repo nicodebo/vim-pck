@@ -4,6 +4,7 @@ stored
 
 import os
 import sys
+import shutil
 
 from vim_pck import utils
 from vim_pck import spinner
@@ -161,7 +162,42 @@ def upgrade_cmd(**kwargs):
             del tmp_hasher
             # TODO: Add a verbose flag that allow to see the hash range
 
+
+def remove_cmd(**kwargs):
+    """This function is launched when the ``vimpck remove``
+    command is invoked.
+    """
+    vimpckrc = utils.ConfigFile()
+    plugls = utils.DiskPlugin(vimpckrc.pack_path)
+
+    ansi_tran = ansi.Parser()
+    title = "<bold>:: Removing {} plugin(s)...<reset>".format(len(kwargs['plug']))
+    print(ansi_tran.sub(title))
+
+    seq = 'LOSANGE'
+    interval = 0.15
+    offset = 1
+    pad = ' '
+    for plug in kwargs['plug']:
+        info = "Removing {}".format(plug)
+        a_spinner = spinner.Spinner(info, interval, seq, offset)
+        a_spinner.start()
+        if plug in plugls.all_plug.keys():
+            try:
+                shutil.rmtree(os.path.join(vimpckrc.pack_path, plug))
+            except:
+                status = "✗ {}: <red>Could not remove !<reset>".format(info)
+            else:
+                status = "Removed"
+                status = "✓ {}: <green>{}<reset>".format(info, status)
+        else:
+            status = "✗ {}: <red>Not a valid plugin !<reset>".format(info)
+        if kwargs['c']:
+            pass
+    # TODO: implement commenting out a whole section
+        a_spinner.stop()
+        status = status.rjust(len(status) + offset, pad)
+        print(ansi_tran.sub(status))
+        del a_spinner
 # TODO: spinner class, stop the spinner thread when deleting the object.
 # __del__ method
-# TODO: put constant in a separate module constant.py
-

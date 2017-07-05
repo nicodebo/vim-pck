@@ -32,12 +32,18 @@ def upgrade(**kwargs):
     """Upgrade installed package(s)"""
     command.upgrade_cmd(**kwargs)
 
+@click.command(context_settings=CONTEXT_SETTINGS)
+@click.option('-c', is_flag=True, help='Comment out from the configuration file')
+@click.argument('plug', required=False, nargs=-1)
+def rm(**kwargs):
+    """Remove specified package(s)"""
+    command.remove_cmd(**kwargs)
 
 main.add_command(install)
 main.add_command(ls)
 main.add_command(upgrade)
+main.add_command(rm)
 
 
 if __name__ == '__main__':
     main()
-

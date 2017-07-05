@@ -14,7 +14,8 @@ case $state in
     _values "main subcommand" \
         "install[install plugins defined in the vimpckrc]" \
         "upgrade[upgrade plugins]" \
-        "ls[list plugins]"
+        "ls[list plugins]" \
+        "rm[remove plugins]"
     ret=0
     ;;
   args)
@@ -29,8 +30,15 @@ case $state in
             "--opt[list only optional plugins]"
         ret=0
         ;;
+      rm)
+        [[ -n "$plugins" ]] && _values 'plugins' $plugins
+        ret=0
+        ;;
     esac
     ;;
 esac
 
 return ret
+
+# TODO: Find how to display multiple _values categories (for upgrade and rm
+# command)
