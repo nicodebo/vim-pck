@@ -6,6 +6,7 @@ PKG_NAME = "package"
 TYPE_NAME = "type"
 FRZ_NAME = "freeze"
 
+# default value if user don't specify anything
 PACKAGE = "vimpck"
 TYPE = "start"
 FREEZE = 0  # false
@@ -14,3 +15,7 @@ FREEZE = 0  # false
 INTERVAL = 0.10
 SEQUENCE = "LOSANGE"
 OFFSET = 1
+
+# ansi.py constant
+LHS = "<"
+RHS = ">"
