@@ -19,3 +19,10 @@ OFFSET = 1
 # ansi.py constant
 LHS = "<"
 RHS = ">"
+
+# default xdg standard directories (if xdg env var not set)
+XDG_CONF_DEF = "~/.config/vimpck/config"
+
+# environement variable name
+XDG_CONF_NAME = "XDG_CONFIG_HOME"
+VIMPCK_CONF_NAME = "VIMPCKRC"

@@ -24,11 +24,11 @@ class ConfigFile:
     def _readconf(self):
         # Read vimpck configuration file
         try:
-            self.conf_path = os.environ['VIMPCKRC']
+            self.conf_path = os.environ[const.VIMPCK_CONF_NAME]
         except KeyError:
-            self.conf_path = os.getenv(os.path.join(os.environ['XDG_CONFIG_HOME'],
+            self.conf_path = os.getenv(os.path.join(os.environ[const.XDG_CONF_NAME],
                                                     'vimpck/config'),
-                                       os.path.expanduser('~/.config/vimpck/config'))
+                                       os.path.expanduser(const.XDG_CONF_DEF))
         finally:
             if os.path.exists(self.conf_path):
                 self.config.read(self.conf_path)
