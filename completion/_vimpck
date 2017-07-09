@@ -1,44 +1,51 @@
 #compdef vimpck
+#autoload
 
-local context
-local state line ret=1
-local plugins
-plugins=($(vimpck ls 2>/dev/null))
-
-_arguments -C \
-  '1: :->cmds' \
-  '*:: :->args' && ret=0
-
-case $state in
-  cmds)
-    _values "main subcommand" \
-        "install[install plugins defined in the vimpckrc]" \
-        "upgrade[upgrade plugins]" \
-        "ls[list plugins]" \
-        "rm[remove plugins]"
-    ret=0
-    ;;
-  args)
-    case $line[1] in
-      upgrade)
-        [[ -n "$plugins" ]] && _values 'plugins' $plugins
-        ret=0
-        ;;
+_vimpck () {
+  local cmd
+  if (( CURRENT > 2)); then
+    cmd=${words[2]}
+    # Set the context for the subcommand.
+    curcontext="${curcontext%:*:*}:vimpck-$cmd"
+    # Narrow the range of words we are looking at to exclude `vimpck'
+    (( CURRENT-- ))
+    shift words
+    # Run the completion for the subcommand
+    case "${cmd}" in
       ls)
-        _values "ls command" \
-            "--start[list only autostarting plugins]" \
-            "--opt[list only optional plugins]"
-        ret=0
-        ;;
+        _arguments : \
+          "--start[list only autostarting plugins]" \
+          "--opt[list only optional plugins]" \
+          ;;
       rm)
-        [[ -n "$plugins" ]] && _values 'plugins' $plugins
-        ret=0
+        _arguments : \
+          "-f[remove entry from configuration file]" \
+          "--force[remove entry from configuration file]"
+        _vimpck_complete_inst_plugins
+        ;;
+      upgrade)
+        _vimpck_complete_inst_plugins
         ;;
     esac
-    ;;
-esac
+  else
+    local -a subcommands
+    subcommands=(
+      "ls:List installed plugin(s)" \
+      "rm:Remove installed plugins" \
+      "install:Install plugins defined in the vimpckrc" \
+      "upgrade:Upgrade plugins" \
+      "help:Output help message"
+    )
+    _describe -t commands 'vimpck' subcommands
+    _arguments : \
+      "--version[Output version information]" \
+      "--help[Output help message]" \
+      "-h[Output help message]"
+  fi
+}
 
-return ret
+_vimpck_complete_inst_plugins () {
+  local IFS=$'\n'
+  _values 'installed plugins' $(vimpck ls 2>/dev/null)
 
-# TODO: Find how to display multiple _values categories (for upgrade and rm
-# command)
+}
