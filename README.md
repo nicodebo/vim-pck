@@ -1,6 +1,7 @@
 # Vim Pck
 
 [![Build Status](https://travis-ci.org/nicodebo/vim-pck.svg?branch=master)](https://travis-ci.org/nicodebo/vim-pck)
+[![Coverage Status](https://coveralls.io/repos/github/nicodebo/vim-pck/badge.svg?branch=master)](https://coveralls.io/github/nicodebo/vim-pck?branch=master)
 
 A command-line tool to manage my vim plugins using the built-in package
 feature of vim8. (see :help packages)
