@@ -80,7 +80,7 @@ package location. For exemple, `vim-commentary` -->
 
 For neovim the package path should be set to `~/.local/share/nvim/site/pack`
 
-Option | default 
+Option | default value
 --- | ---
 package | `vimpck`
 type | `start`
@@ -94,10 +94,11 @@ To use it (see `vimpck --help`):
 * `$ vimpck ls` : list all plugins
 * `$ vimpck ls --start` : list plugins that are automatically loaded
 * `$ vimpck ls --opt` : list plugins that have to be loaded manually
-* `$ vimpck update` : update all plugins that are not freezed
-* `$ vimpck update <plug1>...` : only update `<plug1>` plugin. The plugin have
-  to be specified using the following pattern `package/type/plugin`
-
+* `$ vimpck upgrade` : update all plugins that are not freezed
+* `$ vimpck upgrade <plug>...` : only update `<plug>` plugin. The plugin have
+  to be specified using the following pattern `package/type/plugin`. You can
+  easily complete the <plug> with the zsh completion script.
+* ` vimpck rm <plug>...` : remove one or more <plug>. Support zsh completion. 
 
 ### Environement variable
 
@@ -110,7 +111,7 @@ To use it (see `vimpck --help`):
 A zsh completion function is provided in the `completion` folder of this
 repository.
 
-To use it copy `_vimpck` somewhere in the `$fpath` environement variable of zsh
+To use it copy `_vimpck` somewhere in the `$fpath` environment variable of zsh
 and make sure the completion module of zsh is loaded by putting these following
 lines in your `.zshrc`:
 
@@ -118,26 +119,6 @@ lines in your `.zshrc`:
 autoload -U compinit
 compinit
 ```
-
-## TODO
-
-- [x] vimpck install, install plugins from configuration file
-- [ ] vimpck install -r <requirements>, restore a package directory. The
-      requirements file comes from the vimpack freeze command herebelow.
-- [x] vimpck list, list installed plugins
-- [x] vimpck list --start, list autostarting plugins
-- [x] vimpck list --opt, list optional plugins
-- [x] vimpck upgrade, upgrade non freezed plugins
-- [x] vimpck upgrade <plugin>, upgrade a specific plugin
-- [ ] use sqlite to store package info (installation date, last upgrade,
-      current commit, description,…) ?
-- [ ] vimpck sync, search for upgrade and display the new commits
-- [ ] vimpck freeze, generate a configuration file that mirrors the current
-  packages installation (directory, commit)
-- [ ] vimpck clean, remove commented out/location changed plugins
-- [ ] find a better way to update vimpck. (pypi repo ?)
-- [ ] Add post install hooks, (ex: generate documentation)
-- [ ] Add a flag to upgrade cmd, to upgrade by package
 
 ## Related projects
 
