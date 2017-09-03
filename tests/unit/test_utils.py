@@ -1,10 +1,12 @@
 import configparser
 import os
 import subprocess
+import pytest
 
 from vim_pck import utils
 
 
+@pytest.mark.skip(reason="to be reimplemented")
 class Test_ConfigFile():
     """ Test the ConfigFile class
     """
@@ -91,7 +93,6 @@ class Test_DiskPlugin():
         comparison between what has been installed and what is retrieve
         """
         bsdir = str(temp_dir.mktemp("test_DiskPlugin_class"))
-        print(bsdir)
         plugins = {'colors/start/vim-colors-solarized': 'fake_url1',
                    'filetype/opt/vim-mustache-handlebars': 'fake_url2',
                    'filetype/start/vim-dispatch': 'fake_url3',
@@ -109,7 +110,6 @@ class Test_DiskPlugin():
                            stderr=subprocess.PIPE, check=True)
 
         plugls = utils.DiskPlugin(bsdir)
-        print(plugls.all_plug)
 
         if not set(plugls.all_plug.keys()).symmetric_difference(set(plugins.keys())):
             assert 1
