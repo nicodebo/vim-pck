@@ -293,21 +293,6 @@ if __name__ == "__main__":
         print('\n')
         return out
 
-    clone_obj = Clone('https://github.com/nicodebo/vim-pck', '/tmp')
-    git_test(":: Test Clone...", clone_obj)
-
-    clone_obj2 = Clone('https://github.com/hkupty/iron.nvim', '/tmp')
-    git_test(":: Test Clone with submodules...", clone_obj2)
-
-    pull_obj = Pull('/tmp/vim-pck')
-    git_test(":: Test Pull without submodules...", pull_obj)
-
-    pull_obj2 = Pull('/tmp/iron.nvim')
-    git_test(":: Test Pull with submodule...", pull_obj2)
-
-    revlist_obj = Hash('/tmp/vim-pck')
-    git_test(":: Test Hash...", revlist_obj)
-
     log_obj = HistRange('/tmp/vim-pck',
                         '4b6a95fe14a08fd9bae7930e2cea1a1081509ee7',
                         'a46335e7982f8ff418c2449df4892e61d024137b')
@@ -318,33 +303,6 @@ if __name__ == "__main__":
 
     git_wt_obj2 = IsGitWorkTree('/tmp')
     git_test(":: Test IsGitWorkTree, is a git repo: False...", git_wt_obj2)
-
-    git_rem_obj = GetRemote('/tmp')
-    git_test(":: Test GetRemote, inside a git repo...", git_rem_obj)
-
-    git_rem_obj2 = GetRemote('/tmp/vim-pck')
-    git_test(":: Test GetRemote, outside a git repo: True...", git_rem_obj2)
-
-    # test humanish
-
-    remote_url = ["ssh://user@host.xz:port/path/to/repo.git/"
-                  "git://host.xz:port/path/to/repo.git/",
-                  "https://host.xz:port/path/to/repo.git/",
-                  "ftps://host.xz:port/path/to/repo.git/",
-                  "user@host.xz:path/to/repo.git/",
-                  "ssh://user@host.xz:port/~user/path/to/repo.git/",
-                  "git://host.xz:port/~user/path/to/repo.git/",
-                  "user@host.xz:/~user/path/to/repo.git/",
-                  "/path/to/repo.git/",
-                  "file:///path/to/repo.git/"]
-
-    for elem in remote_url:
-        if humanish(elem) == "repo":
-            print("ok")
-            assert 1
-        else:
-            print("not ok")
-            assert 0
 
     # test parse_gitmodule
     print(parse_gitmodule(clone_obj2.local_dir))
