@@ -175,11 +175,12 @@ def remove_cmd(**kwargs):
             else:
                 status = "Removed"
                 status = "✓ {}: <green>{}<reset>".format(info, status)
+
+            if kwargs['r']:
+                vimpckrc.config.remove_section(plugls.all_plug[plug])
+                vimpckrc.save_config()
         else:
             status = "✗ {}: <red>Not a valid plugin !<reset>".format(info)
-        if kwargs['c']:
-            pass
-    # TODO: implement commenting out a whole section
         a_spinner.stop()
         status = status.rjust(len(status) + const.OFFSET)
         print(ansi_tran.sub(status))

@@ -46,8 +46,23 @@ class ConfigFile:
         url_filt = []
         for rem_url in self.rem_urls:
             if not self.config.getboolean(rem_url, const.FRZ_NAME):
-               url_filt.append(rem_url)
+                url_filt.append(rem_url)
         return url_filt
+
+    def clean_default_value(self):
+        """Clean default values that are added during initialization of the
+        config parser.
+        """
+        for elem in const.DEF_VAL_CONF.keys():
+                self.config.remove_option('DEFAULT', elem)
+
+    def save_config(self):
+        """ Save the configparser object self.conf into pack_path """
+        self.clean_default_value()
+        with open(self.conf_path, 'w') as configfile:
+            self.config.write(configfile)
+        # TODO: configparser remove comments from the config file. Maybe use
+        # ConfObj instead
 
 
 class DiskPlugin:

@@ -34,7 +34,7 @@ def upgrade(**kwargs):
 
 
 @click.command(context_settings=CONTEXT_SETTINGS)
-@click.option('-c', is_flag=True, help='Comment out from the configuration file')
+@click.option('-r', is_flag=True, help='Remove entry from configuration file')
 @click.argument('plug', required=False, nargs=-1)
 def rm(**kwargs):
     """Remove specified package(s)"""

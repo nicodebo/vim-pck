@@ -19,8 +19,7 @@ _vimpck () {
           ;;
       rm)
         _arguments : \
-          "-f[remove entry from configuration file]" \
-          "--force[remove entry from configuration file]"
+          "-r[remove entry from configuration file]"
         _vimpck_complete_inst_plugins
         ;;
       upgrade)
@@ -38,7 +37,6 @@ _vimpck () {
     )
     _describe -t commands 'vimpck' subcommands
     _arguments : \
-      "--version[Output version information]" \
       "--help[Output help message]" \
       "-h[Output help message]"
   fi
