@@ -6,10 +6,11 @@ PKG_NAME = "package"
 TYPE_NAME = "type"
 FRZ_NAME = "freeze"
 
-# default value if user don't specify anything
-PACKAGE = "vimpck"
-TYPE = "start"
-FREEZE = 0  # false
+# default value for option in configuration file
+DEF_VAL_CONF = {PKG_NAME: "vimpck",
+                TYPE_NAME: "start",
+                FRZ_NAME: 'false'
+                }
 
 # spinner.py constant
 INTERVAL = 0.10

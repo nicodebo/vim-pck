@@ -1,7 +1,6 @@
 import configparser
 import os
 import sys
-import itertools
 
 from vim_pck.git import GetRemote
 from vim_pck import const
@@ -12,14 +11,13 @@ class ConfigFile:
     manipulate it"""
 
     def __init__(self):
-        self.config = configparser.ConfigParser()
+        self.config = configparser.ConfigParser(defaults=const.DEF_VAL_CONF)
         self.conf_path = ""  # path to the configuration file
         self.pack_path = ""
         self.rem_urls = []  # list of remote url section
         self._readconf()
         self._get_remote_urls()
         self._get_pack_path()
-        self._sanitize_conf()
 
     def _readconf(self):
         # Read vimpck configuration file
@@ -41,21 +39,9 @@ class ConfigFile:
     def _get_remote_urls(self):
         self.rem_urls = [sect for sect in self.config.sections() if sect != 'DEFAULT']
 
-    def _sanitize_conf(self):
-        """Add default values for the different keys (package, type, freeze) if
-        they are not define by the user"""
-        default_val = {const.PKG_NAME: const.PACKAGE,
-                       const.TYPE_NAME: const.TYPE,
-                       const.FRZ_NAME: const.FREEZE}
-        for url, key in itertools.product(self.rem_urls, default_val.keys()):
-            if not self.config.has_option(url, key):
-                self.config[url][key] = str(default_val[key])
-
     def freeze_false(self):
         """Get the list of sections which freeze option is false
 
-        The sanitize_conf function must have been called before to ensure that
-        a freeze option is available
         """
         url_filt = []
         for rem_url in self.rem_urls:
