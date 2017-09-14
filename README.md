@@ -56,19 +56,19 @@ specified. It's default location follow the [XDG specification](https://specific
     # pack_path= ~/.local/share/nvim/site/pack for neovim
 
 [REPOSITORY]
-    [https://github.com/tpope/vim-commentary]
+    [[https://github.com/tpope/vim-commentary]]
         package = common
         type = start
         freeze = True ;Don't update vim-commentary when launching vimpck upgrade
 
-    [https://github.com/tpope/vim-dispatch]
+    [[https://github.com/tpope/vim-dispatch]]
     # default location pack_path/vimpck/start/vim-dispatch
 
-    [https://github.com/mustache/vim-mustache-handlebars]
+    [[https://github.com/mustache/vim-mustache-handlebars]]
         package = filetype
         type = start
 
-    [https://github.com/altercation/vim-colors-solarized]
+    [[https://github.com/altercation/vim-colors-solarized]]
         package = colors
         type = start
 ```
