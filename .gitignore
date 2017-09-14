@@ -95,12 +95,3 @@ ENV/
 .ropeproject
 
 # End of https://www.gitignore.io/api/python
-
-# ctags files
-tags
-
-# my notes
-Notes.md
-
-# obsession
-Session.vim
