@@ -35,12 +35,8 @@ def install_cmd():
             a_spinner = spinner.Spinner(info, const.INTERVAL,
                                         const.SEQUENCE, const.OFFSET)
             local_dir = os.path.join(vimpckrc.pack_path,
-                                     vimpckrc.config[remote_url][const.PKG_NAME],
-                                     vimpckrc.config[remote_url][const.TYPE_NAME])
-            #TODO: make a try except block status (missing package or type key)
-            # and don't make the check in the ConfigFile class (i.e. valid
-            # plug)
-            # if local_dir = [] then continue statement
+                                     vimpckrc.config[const.SECT_2][remote_url][const.PKG_NAME],
+                                     vimpckrc.config[const.SECT_2][remote_url][const.TYPE_NAME])
             os.makedirs(local_dir, exist_ok=True)
             tmp_cloner = git.Clone(remote_url, local_dir)
             a_spinner.start()
@@ -177,8 +173,8 @@ def remove_cmd(**kwargs):
                 status = "✓ {}: <green>{}<reset>".format(info, status)
 
             if kwargs['r']:
-                vimpckrc.config.remove_section(plugls.all_plug[plug])
-                vimpckrc.save_config()
+                vimpckrc.config[const.SECT_2].pop(plugls.all_plug[plug], None)
+                vimpckrc.config.write()
         else:
             status = "✗ {}: <red>Not a valid plugin !<reset>".format(info)
         a_spinner.stop()

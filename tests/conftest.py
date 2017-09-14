@@ -20,7 +20,7 @@ def write_conf_1(temp_dir, monkeypatch):
     dirtest = 'ConfigFile'
     basepath = temp_dir.mktemp(dirtest)
     confpath = basepath.join('config.ini')
-    config['DEFAULT'] = {'pack_path': basepath}
+    config['SETTING'] = {'pack_path': basepath}
     config['https://github.com/tpope/vim-commentary'] = \
         {'package': 'common',
             'type': 'start'}
@@ -51,7 +51,7 @@ def write_conf_2(temp_dir, monkeypatch):
     dirtest = 'install_cmd'
     basepath = temp_dir.mktemp(dirtest)
     confpath = basepath.join('config.ini')
-    config['DEFAULT'] = {'pack_path': basepath}
+    config['SETTING'] = {'pack_path': basepath}
     config['https://github.com/tpope/vim-commentary'] = \
         {'package': 'common',
             'type': 'start'}
@@ -87,7 +87,7 @@ def write_conf_3(temp_dir, monkeypatch):
     dirtest = 'install_cmd'
     basepath = temp_dir.mktemp(dirtest)
     confpath = basepath.join('config.ini')
-    config['DEFAULT'] = {'pack_path': basepath}
+    config['SETTING'] = {'pack_path': basepath}
     config['https://github.com/tpope/vim-commentary'] = \
         {'package': 'common',
             'type': 'start'}
@@ -118,7 +118,7 @@ def write_conf_4(temp_dir, monkeypatch):
     dirtest = 'ConfigFile'
     basepath = temp_dir.mktemp(dirtest)
     confpath = basepath.join('config.ini')
-    config['DEFAULT'] = {'pack_path': basepath}
+    config['SETTING'] = {'pack_path': basepath}
     config['https://github.com/tpope/vim-commentary'] = \
         {'package': 'common',
             'type': 'start',

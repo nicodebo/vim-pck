@@ -50,28 +50,27 @@ The main configuration file where the vim packages are
 specified. It's default location follow the [XDG specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html) that is `$XDG_HOME_CONFIG/vimpck/config` or `~/.config/vimpck/config` if `XDG_HOME_CONFIG` is not set.
 
 ```dosini
-; example vimpck configuration file
-[DEFAULT]
-;The built in package directory. See :help packages
-pack_path=~/.vim/pack
-;pack_path= ~/.local/share/nvim/site/pack for neovim
+[SETTING]
+    # The built in package directory. See :help packages
+    pack_path=~/.vim/pack
+    # pack_path= ~/.local/share/nvim/site/pack for neovim
 
-[https://github.com/tpope/vim-commentary]
-package = common
-type = start
-freeze = True ;Don't update vim-commentary when launching vimpck upgrade
-;possible value yes/no, on/off, true/false, 1/0
+[REPOSITORY]
+    [https://github.com/tpope/vim-commentary]
+        package = common
+        type = start
+        freeze = True ;Don't update vim-commentary when launching vimpck upgrade
 
-[https://github.com/tpope/vim-dispatch]
-; default location pack_path/vimpck/start/vim-dispatch
+    [https://github.com/tpope/vim-dispatch]
+    # default location pack_path/vimpck/start/vim-dispatch
 
-[https://github.com/mustache/vim-mustache-handlebars]
-package = filetype
-type = start
+    [https://github.com/mustache/vim-mustache-handlebars]
+        package = filetype
+        type = start
 
-[https://github.com/altercation/vim-colors-solarized]
-package = colors
-type = start
+    [https://github.com/altercation/vim-colors-solarized]
+        package = colors
+        type = start
 ```
 
 Then run `vimpck install` to clone each remote repository in the correct
@@ -82,9 +81,10 @@ For neovim the package path should be set to `~/.local/share/nvim/site/pack`
 
 Option | default value
 --- | ---
+pack_path | `~/.vim/pack`
 package | `vimpck`
 type | `start`
-freeze | `false`
+freeze | `False`
 
 ### Usage
 
@@ -98,13 +98,13 @@ To use it (see `vimpck --help`):
 * `$ vimpck upgrade <plug>...` : only update `<plug>` plugin. The plugin have
   to be specified using the following pattern `package/type/plugin`. You can
   easily complete the <plug> with the zsh completion script.
-* ` vimpck rm <plug>...` : remove one or more <plug>. Support zsh completion. 
+* ` vimpck rm <plug>...` : remove one or more <plug>. Support zsh completion.
 
-### Environement variable
+### Environment variable
 
 * `VIMPCKRC`: override default configuration location (xdg standard)
 
-   example : `export VIMPCKRC=/path/to/conf/name`
+   Example : `export VIMPCKRC=/path/to/conf/name`
 
 ### Completion
 

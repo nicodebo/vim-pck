@@ -3,7 +3,7 @@ Another vim package manager
 """
 from setuptools import find_packages, setup
 
-dependencies = ['click']
+dependencies = ['click', 'configobj']
 
 setup(
     name='vimpck',

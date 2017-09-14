@@ -1,6 +1,7 @@
-import configparser
 import os
 import sys
+import configobj
+from validate import Validator
 
 from vim_pck.git import GetRemote
 from vim_pck import const
@@ -11,58 +12,69 @@ class ConfigFile:
     manipulate it"""
 
     def __init__(self):
-        self.config = configparser.ConfigParser(defaults=const.DEF_VAL_CONF)
         self.conf_path = ""  # path to the configuration file
+        self.config = None  # ConfigObj object
+        self._get_conf_path()
+        self._read_conf()
+        self._validate_conf()
+        self._get_pack_path()
         self.pack_path = ""
         self.rem_urls = []  # list of remote url section
-        self._readconf()
         self._get_remote_urls()
         self._get_pack_path()
 
-    def _readconf(self):
-        # Read vimpck configuration file
+    def _get_conf_path(self):
+        """ Determine the configuration file path """
+        # xdg directory for configuration file
         try:
-            self.conf_path = os.environ[const.VIMPCK_CONF_NAME]
+            conf_path = os.environ["VIMPCKRC"]
         except KeyError:
-            self.conf_path = os.getenv(os.path.join(os.environ[const.XDG_CONF_NAME],
-                                                    'vimpck/config'),
-                                       os.path.expanduser(const.XDG_CONF_DEF))
-        finally:
-            if os.path.exists(self.conf_path):
-                self.config.read(self.conf_path)
-            else:
-                sys.exit("No configuration file found!")
+            try:
+                conf_path = os.path.join(os.environ['XDG_CONFIG_HOME'], 'vimpck', 'config')
+            except KeyError:
+                conf_path = os.path.join(os.environ['HOME'], '.config', 'vimpck', 'config')
+        self.conf_path = conf_path
+
+    def _read_conf(self):
+        if os.path.exists(self.conf_path):
+            self.config = configobj.ConfigObj(self.conf_path,
+                                              configspec=os.path.join(const.ROOT_DIR,
+                                                                      'configspec.ini'))
+        else:
+            sys.exit("No configuration file found!")
+
+    def _validate_conf(self):
+        """ Check if the configuration file is correct """
+        validator = Validator()
+        results = self.config.validate(validator)
+        if not results:
+            for entry in configobj.flatten_errors(self.config, results):
+                # each entry is a tuple
+                section_list, key, error = entry
+                if key is not None:
+                    section_list.append(key)
+                else:
+                    section_list.append('[missing section]')
+                section_string = ', '.join(section_list)
+                if not error:
+                    error = 'Missing value or section.'
+                print(section_string, ' = ', error)
+            sys.exit(1)
 
     def _get_pack_path(self):
-        self.pack_path = os.path.expanduser(self.config['DEFAULT']['pack_path'])
+        self.pack_path = os.path.expanduser(self.config[const.SECT_1]['pack_path'])
 
     def _get_remote_urls(self):
-        self.rem_urls = [sect for sect in self.config.sections() if sect != 'DEFAULT']
+        self.rem_urls = self.config[const.SECT_2].keys()
 
     def freeze_false(self):
         """Get the list of sections which freeze option is false
-
         """
         url_filt = []
         for rem_url in self.rem_urls:
-            if not self.config.getboolean(rem_url, const.FRZ_NAME):
+            if not self.config[const.SECT_2][rem_url].as_bool(const.FRZ_NAME):
                 url_filt.append(rem_url)
         return url_filt
-
-    def clean_default_value(self):
-        """Clean default values that are added during initialization of the
-        config parser.
-        """
-        for elem in const.DEF_VAL_CONF.keys():
-                self.config.remove_option('DEFAULT', elem)
-
-    def save_config(self):
-        """ Save the configparser object self.conf into pack_path """
-        self.clean_default_value()
-        with open(self.conf_path, 'w') as configfile:
-            self.config.write(configfile)
-        # TODO: configparser remove comments from the config file. Maybe use
-        # ConfObj instead
 
 
 class DiskPlugin:
