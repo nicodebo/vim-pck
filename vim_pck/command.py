@@ -103,58 +103,59 @@ def upgrade_cmd(**kwargs):
         plug = {k: v for k, v in pluglist.all_plug.items() if k in kwargs['plug']}
 
     if not plug:
-        print('no plugin to upgrade !')
-    else:
-        ansi_tran = ansi.Parser(const.LHS, const.RHS)
-        title = "<bold>:: Upgrading plugins...<reset>"
-        print(ansi_tran.sub(title))
-        for path in plug.keys():
-            info = "{}".format(plug[path])
-            a_spinner = spinner.Spinner(info, const.INTERVAL,
-                                        const.SEQUENCE, const.OFFSET)
-            local_dir = os.path.join(vimpckrc.pack_path, path)
+        sys.exit('no plugins to be upgraded!')
 
-            tmp_puller = git.Pull(local_dir)
-            tmp_hasher = [git.Hash(local_dir) for i in range(2)]
-            tmp_hasher[0].git_cmd()
-            hash_bef = tmp_hasher[0].retrieve_stdout()
-            a_spinner.start()
-            out = tmp_puller.git_cmd()
-            a_spinner.stop()
-            tmp_hasher[1].git_cmd()
-            hash_aft = tmp_hasher[1].retrieve_stdout()
-            if out == 0:
-                if hash_bef == hash_aft:
-                    message = "<yellow>Already up to date<reset>"
-                else:
-                    message = "<green>Updated"
-                status = "✓ {}: <green>{}<reset>".format(info, message)
-                status = status.rjust(len(status) + const.OFFSET)
-                status = ansi_tran.sub(status)
-                print(status)
+    ansi_tran = ansi.Parser(const.LHS, const.RHS)
+    title = "<bold>:: Upgrading plugins...<reset>"
+    print(ansi_tran.sub(title))
+    for path in plug.keys():
+        info = "{}".format(plug[path])
+        a_spinner = spinner.Spinner(info, const.INTERVAL,
+                                    const.SEQUENCE, const.OFFSET)
+        local_dir = os.path.join(vimpckrc.pack_path, path)
+
+        tmp_puller = git.Pull(local_dir)
+        tmp_hasher = [git.Hash(local_dir) for i in range(2)]
+        tmp_hasher[0].git_cmd()
+        hash_bef = tmp_hasher[0].retrieve_stdout()
+        a_spinner.start()
+        out = tmp_puller.git_cmd()
+        a_spinner.stop()
+        tmp_hasher[1].git_cmd()
+        hash_aft = tmp_hasher[1].retrieve_stdout()
+        if out == 0:
+            if hash_bef == hash_aft:
+                message = "<yellow>Already up to date<reset>"
             else:
-                status = "✗ {}: <red>Fail<reset>".format(info)
-                status = status.rjust(len(status) + const.OFFSET)
-                status = ansi_tran.sub(status)
-                print(status)
-                err_status = tmp_puller.error_proc.stderr.decode('UTF-8')
-                # TODO: duplicate the retrieve_stdout method, merge them
-                err_status = err_status.rjust(len(err_status) + const.OFFSET + 2)
-                print(err_status)
-            del a_spinner
-            del tmp_puller
-            del tmp_hasher
-            # TODO: Add a verbose flag that allow to see the hash range
+                message = "<green>Updated"
+            status = "✓ {}: <green>{}<reset>".format(info, message)
+            status = status.rjust(len(status) + const.OFFSET)
+            status = ansi_tran.sub(status)
+            print(status)
+        else:
+            status = "✗ {}: <red>Fail<reset>".format(info)
+            status = status.rjust(len(status) + const.OFFSET)
+            status = ansi_tran.sub(status)
+            print(status)
+            err_status = tmp_puller.error_proc.stderr.decode('UTF-8')
+            # TODO: duplicate the retrieve_stdout method, merge them
+            err_status = err_status.rjust(len(err_status) + const.OFFSET + 2)
+            print(err_status)
+        del a_spinner
+        del tmp_puller
+        del tmp_hasher
+        # TODO: Add a verbose flag that allow to see the hash range
 
 
 def remove_cmd(**kwargs):
     """This function is launched when the ``vimpck remove``
     command is invoked.
     """
+
     vimpckrc = utils.ConfigFile()
     plugls = utils.DiskPlugin(vimpckrc.pack_path)
-
     ansi_tran = ansi.Parser(const.LHS, const.RHS)
+
     title = "<bold>:: Removing {} plugin(s)...<reset>".format(len(kwargs['plug']))
     print(ansi_tran.sub(title))
 
