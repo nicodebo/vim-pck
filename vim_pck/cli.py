@@ -53,6 +53,7 @@ def clean():
     """Remove unused plugins"""
     command.clean_cmd()
 
+
 main.add_command(install)
 main.add_command(ls)
 main.add_command(upgrade)
