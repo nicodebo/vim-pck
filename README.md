@@ -59,7 +59,7 @@ specified. It's default location follow the [XDG specification](https://specific
     [[https://github.com/tpope/vim-commentary]]
         package = common
         type = start
-        freeze = True ;Don't update vim-commentary when launching vimpck upgrade
+        freeze = True # Don't update vim-commentary when launching vimpck upgrade
 
     [[https://github.com/tpope/vim-dispatch]]
     # default location pack_path/vimpck/start/vim-dispatch
@@ -97,8 +97,11 @@ To use it (see `vimpck --help`):
 * `$ vimpck upgrade` : update all plugins that are not freezed
 * `$ vimpck upgrade <plug>...` : only update `<plug>` plugin. The plugin have
   to be specified using the following pattern `package/type/plugin`. You can
-  easily complete the <plug> with the zsh completion script.
-* ` vimpck rm <plug>...` : remove one or more <plug>. Support zsh completion.
+  easily complete the `<plug>` with the zsh completion script.
+* ` vimpck rm <plug>...` : remove one or more `<plug>`. Support zsh completion.
+* ` vimpck rm -r <plug>...` : remove one or more `<plug>` and also remove the
+  corresponding section from the configuration file.
+* ` vimpck clean` : remove unused plugins
 
 ### Environment variable
 

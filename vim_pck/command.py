@@ -183,3 +183,38 @@ def remove_cmd(**kwargs):
         del a_spinner
 # TODO: spinner class, stop the spinner thread when deleting the object.
 # __del__ method
+
+
+def clean_cmd():
+    """This function is launched when the ``vimpck clean``
+    command is invoked.
+    """
+    vimpckrc = utils.ConfigFile()
+    plugls = utils.DiskPlugin(vimpckrc.pack_path)
+
+    diff = set(vimpckrc.rem_urls).symmetric_difference(set(plugls.all_plug.values()))
+
+    if not diff:
+        sys.exit("no plugins to be removed!")
+
+    ansi_tran = ansi.Parser(const.LHS, const.RHS)
+    title = "<bold>:: Removing {} plugin(s)...<reset>".format(len(diff))
+    print(ansi_tran.sub(title))
+    for rem_url in diff:
+        plug = [k for k, v in plugls.all_plug.items() if v == rem_url][0]
+        info = "Removing {}".format(plug)
+        a_spinner = spinner.Spinner(info, const.INTERVAL,
+                                    const.SEQUENCE, const.OFFSET)
+        a_spinner.start()
+        try:
+            shutil.rmtree(os.path.join(vimpckrc.pack_path, plug))
+            pass
+        except:
+            status = "✗ {}: <red>Could not remove!<reset>".format(info)
+        else:
+            status = "Removed"
+            status = "✓ {}: <green>{}<reset>".format(info, status)
+        a_spinner.stop()
+        status = status.rjust(len(status) + const.OFFSET)
+        print(ansi_tran.sub(status))
+        del a_spinner

@@ -48,11 +48,17 @@ def help(ctx):
     print(ctx.parent.get_help())
 
 
+@click.command(context_settings=CONTEXT_SETTINGS)
+def clean():
+    """Remove unused plugins"""
+    command.clean_cmd()
+
 main.add_command(install)
 main.add_command(ls)
 main.add_command(upgrade)
 main.add_command(rm)
 main.add_command(help)
+main.add_command(clean)
 
 
 if __name__ == '__main__':

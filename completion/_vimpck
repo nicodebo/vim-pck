@@ -33,7 +33,8 @@ _vimpck () {
       "rm:Remove installed plugins" \
       "install:Install plugins defined in the vimpckrc" \
       "upgrade:Upgrade plugins" \
-      "help:Output help message"
+      "help:Output help message" \
+      "clean:Remove unused plugins"
     )
     _describe -t commands 'vimpck' subcommands
     _arguments : \
