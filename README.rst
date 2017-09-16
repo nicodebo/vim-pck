@@ -161,7 +161,7 @@ Note
 License
 -------
 
-MIT license, see the LICENSE file. You can use obfuscator in open source
+MIT license, see the LICENSE file. You can use vim-pck in open source
 projects and commercial products.
 
 .. _Dependencies: #dependencies
