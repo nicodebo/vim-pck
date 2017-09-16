@@ -1,7 +1,7 @@
 Vim Pck
 =======
 
-|Build Status| |Coverage Status|
+|Build Status| |Coverage Status| |Pypi|
 
 A command-line tool to manage my vim plugins using the built-in package
 feature of vim8. (see :help packages)
@@ -178,3 +178,5 @@ projects and commercial products.
 .. |install| image:: screenshot/install.jpg
 .. |list| image:: screenshot/ls.jpg
 .. |upgrade| image:: screenshot/upgrade.jpg
+.. |Pypi| image:: https://img.shields.io/pypi/v/vim-pck.svg?style=flat
+   :target: https://pypi.python.org/pypi/vim-pck
