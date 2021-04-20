@@ -4,8 +4,15 @@
 #
 #    pip-compile --output-file dev-requirements.txt dev-requirements.in
 #
-pluggy==0.5.1             # via tox
-py==1.4.34                # via pytest, tox
+pluggy==0.5.1
+    # via tox
+py==1.10.0
+    # via
+    #   pytest
+    #   tox
 pytest==3.2.1
+    # via -r dev-requirements.in
 tox==2.8.0
-virtualenv==15.1.0        # via tox
+    # via -r dev-requirements.in
+virtualenv==15.1.0
+    # via tox
